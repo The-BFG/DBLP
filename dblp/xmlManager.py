@@ -6,7 +6,7 @@ def readXML(xml_file):
     print(rootel.nodeName)   # print root element name
     print(rootel.nodeType)
     topnodes = rootel.childNodes
-    for toplevel in topnodes:
-        print(toplevel.nodeName)     # print root children names
-        print(toplevel.nodeType)
+    # for toplevel in topnodes:
+    #     print(toplevel.nodeName)     # print root children names
+    #     print(toplevel.nodeType)
     return rootel

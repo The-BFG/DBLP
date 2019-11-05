@@ -1,13 +1,14 @@
 from flask import Flask, render_template, send_from_directory #, escape, request
 import os
-from xmlManager import *
+from . import xmlManager
 
 APP = Flask(__name__)
 
 @APP.route('/')
 def dblp():
-    xmlManager.readXML("")
-    return render_template("index.html", par=par)
+    #rootel = xmlManager.readXML("dblp.xml")
+    print("ciao")
+    return render_template("index.html", par="CIAO")
 
 @APP.route('/favicon.ico')
 def favicon():
