@@ -12,7 +12,7 @@ University project for Full Text Search using docker and elastic search.
     docker pull docker.elastic.co/elasticsearch/elasticsearch:7.4.2
     ```
     ```bash
-    docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co elasticsearch/elasticsearch:7.4.2
+    docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.4.2
     ```
 3. Install Flask:
     * upgrade `pip`
@@ -122,11 +122,21 @@ dblp:
         * title
         * year
         * ee
-6. <mastersthesis mdate="2018-06-13" key="ms/Vollmer2006">
-<author>Stephan Vollmer</author>
-<title>Portierung des DBLP-Systems auf ein relationales Datenbanksystem und Evaluation der Performance.</title>
-<year>2006</year>
-<school>Diplomarbeit, Universit&auml;t Trier, FB IV, Informatik</school>
-<ee>http://dbis.uni-trier.de/Diplomanden/Vollmer/vollmer.shtml</ee>
-</mastersthesis>
+6. 
 
+<article
+<author
+<book
+<cite
+<editor
+<ee
+<incollection
+<inproceedings
+<mastersthesis
+<note
+<phdthesis
+<proceedings
+<www
+
+
+$ cat dblp.xml | grep key | cut -f-1 -d' ' | sort | uniq | grep -v ">"
