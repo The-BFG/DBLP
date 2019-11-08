@@ -30,7 +30,7 @@ University project for Full Text Search using docker and elastic search.
 
 4. Download the repository from Github:
     ```bash 
-    git clone "https://github.com/The-BFG/GAVI.git
+    git clone "https://github.com/The-BFG/DBLP.git"
     ```
 5. Run application:
     * Enter in the project directory:
@@ -124,19 +124,19 @@ dblp:
         * ee
 6. 
 
-<article
-<author
-<book
-<cite
-<editor
-<ee
-<incollection
-<inproceedings
-<mastersthesis
-<note
-<phdthesis
-<proceedings
-<www
+article
+author
+book
+cite
+editor
+ee
+incollection
+inproceedings
+mastersthesis
+note
+phdthesis
+proceedings
+www
 
 
 $ cat dblp.xml | grep key | cut -f-1 -d' ' | sort | uniq | grep -v ">"

@@ -6,9 +6,21 @@ APP = Flask(__name__)
 
 @APP.route('/')
 def dblp():
-    #rootel = xmlManager.readXML("dblp.xml")
-    print("ciao")
-    return render_template("index.html", par="CIAO")
+    element_list = ["article",
+                    "author",
+                    "book",
+                    "cite",
+                    "editor",
+                    "ee",
+                    "incollection",
+                    "inproceedings",
+                    "mastersthesis",
+                    "note",
+                    "phdthesis",
+                    "proceedings",
+                    "www"]
+    block_list = xmlManager.readXML("test.xml", element_list)
+    return render_template("index.html", block_list=block_list)
 
 @APP.route('/favicon.ico')
 def favicon():
