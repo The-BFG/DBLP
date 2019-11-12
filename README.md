@@ -14,25 +14,31 @@ University project for Full Text Search using docker and elastic search.
     ```bash
     docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.4.2
     ```
-3. Install Flask:
-    * upgrade `pip`
-        ```bash
-        pip3 install --upgrade pip --user
-        ```
-    * and install `flask`
+
+3. Upgrade `pip`:
+    ```bash
+    pip3 install --upgrade pip --user
+    ```
+
+4. Install python requirements:
+    * install `flask`:
         ```bash
         pip3 install flask --user
         ```
-    * or upgrade it if already installed
+    * install `elasticsearch`:
         ```bash
-        pip3 install --upgrade flask --user
+        pip3 install elasticsearch --user
+        ```
+    * install `xmltodict`:
+        ```bash
+        pip3 install xmltodict --user
         ```
 
-4. Download the repository from Github:
+5. Download the repository from Github:
     ```bash 
     git clone "https://github.com/The-BFG/DBLP.git"
     ```
-5. Run application:
+6. Run application:
     * Enter in the project directory:
         ```bash
         cd DBLP
