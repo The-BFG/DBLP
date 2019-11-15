@@ -1,17 +1,43 @@
-import json, xmltodict
-from . import es_rest_API
- 
-def xmlToJson(xml_element):
-    print("\nXML input:")
-    print(xml_element)
-    json_element = json.dumps(xmltodict.parse(xml_element.replace("&", "&amp;")), indent=4)
-    print("JSON output:")
-    print(json_element)
-    return json_element
+import json, xmltodict, collections, elasticsearch as es
+from . import es_API
+
+def xmldictSpecialElementStringToObject(xml_dict, element_type):
+    for key in xml_dict[element_type].keys():
+        if key in ("author", "editor"):
+            if isinstance(xml_dict[element_type][key], str):
+                xml_dict[element_type][key] = [xml_dict[element_type][key]]
+
+            for element in xml_dict[element_type][key]:
+                if not isinstance(element, collections.OrderedDict):
+                    # print(element)
+                    index = xml_dict[element_type][key].index(element)                    
+                    xml_dict[element_type][key][index] = collections.OrderedDict({"#text":element})
+                    # print(xml_dict['article'][key][index])
+    return xml_dict
+
+
+def uploadElement(_es, xml_element, element_type):
+    uploaded = False
+    #print("\nXML input:")
+    #print(xml_element)
+
+    xml_dict = xmltodict.parse(xml_element.replace("&", "&amp;"))
+    xml_dict = xmldictSpecialElementStringToObject(xml_dict, element_type)
+    json_element = json.dumps(xml_dict, indent=4)
+
+    #print("JSON output:")
+    #print(json_element)
+
+    #Store the document in Elasticsearch 
+    try:
+        uploaded = _es.index(index='dblp', body=json_element, id=xml_dict[element_type]["@key"])
+    except es.exceptions.RequestError  as _e:   
+        uploaded = _e
+    return uploaded
 
 
 '''Read XMl file element by element for manage big XML file.'''
-def readXML(xml_file, element_list):
+def readXML(xml_file, element_list, _es):
     xml = open(xml_file, "r")
     element_block_list = []
     element_block = []
@@ -20,18 +46,19 @@ def readXML(xml_file, element_list):
 
     while line:
         # Check if there's one of the element to search in line
-        for element in element_list:
-            if element in line:
+        for element in element_list[:14]:
+            if "<"+element in line:
                 element_type = element
+                break
         #print("Start block:")
         # Cycle on all line after main element that was found until close tag
-        while "</"+element_type not in line:
+        while "</"+element_type+">" not in line:
             #print(element_type, line)
             element_block.append(line)
             line = xml.readline().rstrip()
 
         #need to verify last line if it contains other element header after close tag
-        if (len(line) - (line.find("</"+element_type+">") + len("</"+element_type+">"))) > 2:
+        if (len(line) - (line.find("</"+element_type+">") + len("</"+element_type+">"))) > 1:
             line = line.split("</"+element_type+">", 1)
             element_block.append(line[0]+"</"+element_type+">")
             line = line[1]
@@ -39,11 +66,10 @@ def readXML(xml_file, element_list):
             element_block.append(line)
             #print(element_type, line)
 
-        json_element = xmlToJson("\n".join(element_block))
-
+        created = uploadElement(_es, "\n".join(element_block), element_type)
+        #print(created)
         element_block_list.append(element_block)
         element_block = []
-        #print("Endblock\n")
         if "</" in line:
             line = xml.readline().rstrip()
 

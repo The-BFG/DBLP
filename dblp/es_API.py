@@ -12,18 +12,19 @@ def connect_elasticsearch():
         print('Could not connect to Elasticsearch!')
     return _es
 
-def create_index(es_object, settings, index_name='dblp' ):
+def create_index(_es, index_name='new_index', settings='{"dynamic": true}'):
     created = False
     try:
-        if not es_object.indices.exists(index_name):
+        if not _es.indices.exists(index_name):
             # Ignore 400 means to ignore "Index Already Exist" error.
-            es_object.indices.create(index=index_name, ignore=400, body=settings)
-            print('Created Index')
+            _es.indices.create(index=index_name, ignore=400)#
+            print('Creating Index...')
         created = True
     except Exception as ex:
         print(str(ex))
     finally:
-        print("bhoch")
+        print("Index created.")
+    return _es, created
 
 
 if __name__ == '__main__':

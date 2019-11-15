@@ -1,6 +1,8 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"></head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    </head>
     <body>
         {% for block in block_list %}
             <div>{{ block }}</div><br>
