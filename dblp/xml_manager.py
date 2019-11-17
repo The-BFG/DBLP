@@ -1,5 +1,8 @@
-import json, xmltodict, collections, elasticsearch as es
+import json, xmltodict, collections, elasticsearch as es, time
+from subprocess import check_output
 from . import es_API
+
+line_number = 0
 
 def xmldictSpecialElementStringToObject(xml_dict, element_type):
     for key in xml_dict[element_type].keys():
@@ -20,22 +23,34 @@ def uploadElement(_es, xml_element, element_type):
     uploaded = False
     #print("\nXML input:")
     #print(xml_element)
-
     xml_dict = xmltodict.parse(xml_element.replace("&", "&amp;"))
     xml_dict = xmldictSpecialElementStringToObject(xml_dict, element_type)
     json_element = json.dumps(xml_dict, indent=4)
-
-    #print("JSON output:")
-    #print(json_element)
-
+    print("JSON output:")
+    print(json_element)
     #Store the document in Elasticsearch 
     try:
         uploaded = _es.index(index='dblp', body=json_element, id=xml_dict[element_type]["@key"])
-    except es.exceptions.RequestError  as _e:   
+    except es.exceptions.RequestError  as _e:
         uploaded = _e
     return uploaded
 
 
+def wc(xml_file):
+    return int(check_output(["wc", "-l", xml_file]).split()[0])
+
+
+def getUploadPercentage(xml_file):
+    total_line = wc(xml_file)
+    global line_number
+    percentage = 0
+    while percentage <= 100:
+        yield "data:" + str(percentage) + "\n\n"
+        percentage = line_number/total_line*100
+        time.sleep(0.5)
+    return percentage
+
+    
 '''Read XMl file element by element for manage big XML file.'''
 def readXML(xml_file, element_list, _es):
     xml = open(xml_file, "r")
@@ -67,12 +82,11 @@ def readXML(xml_file, element_list, _es):
             #print(element_type, line)
 
         created = uploadElement(_es, "\n".join(element_block), element_type)
-        #print(created)
+        global line_number
+        line_number = xml.tell()
         element_block_list.append(element_block)
         element_block = []
         if "</" in line:
             line = xml.readline().rstrip()
-
     xml.close()
-    return element_block_list
     

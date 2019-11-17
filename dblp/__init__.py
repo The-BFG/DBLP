@@ -1,48 +1,51 @@
 from . import xml_manager, es_API
-from flask import Flask, render_template, Response, send_from_directory #, escape, request
-import os, time
+from flask import Flask, render_template, request, Response, stream_with_context, redirect, url_for, send_from_directory
+import os
 
 APP = Flask(__name__)
+XML_FILE = "test.xml"
 
 @APP.route('/')
+@APP.route("/index")
 def dblp():
-    pass
+    return render_template("index.html")
 
-@APP.route('/upload')
+@APP.route('/upload', methods=["GET", "POST"])
 def upload():
-    _es = es_API.connect_elasticsearch()
-    index_name = "dblp"
-    if not _es.indices.exists(index_name):
-        _es = es_API.create_index(_es, index_name)
+    global XML_FILE
 
-    print(_es)
-    element_list = ["article",
-                    "author",
-                    "book",
-                    "cite",
-                    "editor",
-                    "ee",
-                    "incollection",
-                    "inproceedings",
-                    "mastersthesis",
-                    "note",
-                    "phdthesis",
-                    "proceedings",
-                    "www"]
-    block_list = xml_manager.readXML("test.xml", element_list, _es)
-    return render_template("upload.html", block_list=block_list)
+    if request.method == "GET":
+        return render_template("upload.html")
+
+    elif request.method == "POST":
+        _es = es_API.connect_elasticsearch()
+        index_name = "dblp"
+        if not _es.indices.exists(index_name):
+            _es = es_API.create_index(_es, index_name)
+        print(_es)
+        
+        element_list = ["article",
+                        "author",
+                        "book",
+                        "cite",
+                        "editor",
+                        "ee",
+                        "incollection",
+                        "inproceedings",
+                        "mastersthesis",
+                        "note",
+                        "phdthesis",
+                        "proceedings",
+                        "www"]
+        Response(xml_manager.getUploadPercentage(XML_FILE), mimetype='text/event-stream')
+        xml_manager.readXML(XML_FILE, element_list, _es)
+        return redirect("index")
 
 
 @APP.route('/progress')
 def progress():
-    def generate():
-        x = 0
-
-        while x <= 100:
-            yield "data:" + str(x) + "\n\n"
-            x = x + 10
-            time.sleep(0.5)
-    return Response(generate(), mimetype='text/event-stream')
+    global XML_FILE
+    return Response(stream_with_context(xml_manager.getUploadPercentage(XML_FILE)), mimetype='text/event-stream')
 
 @APP.route('/favicon.ico')
 def favicon():
