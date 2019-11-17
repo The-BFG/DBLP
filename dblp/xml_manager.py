@@ -26,8 +26,8 @@ def uploadElement(_es, xml_element, element_type):
     xml_dict = xmltodict.parse(xml_element.replace("&", "&amp;"))
     xml_dict = xmldictSpecialElementStringToObject(xml_dict, element_type)
     json_element = json.dumps(xml_dict, indent=4)
-    print("JSON output:")
-    print(json_element)
+    #print("JSON output:")
+    #print(json_element)
     #Store the document in Elasticsearch 
     try:
         uploaded = _es.index(index='dblp', body=json_element, id=xml_dict[element_type]["@key"])
@@ -45,10 +45,11 @@ def getUploadPercentage(xml_file):
     global line_number
     percentage = 0
     while percentage <= 100:
-        yield "retry: 10\n"
+        yield "retry: 100\n"
         yield "data:" + str(percentage) + "\n\n"
         percentage = line_number/total_line*100
-        #time.sleep(0.5)
+        print(percentage)
+        time.sleep(0.5)
     return percentage
 
     
@@ -85,9 +86,11 @@ def readXML(xml_file, element_list, _es):
         created = uploadElement(_es, "\n".join(element_block), element_type)
         global line_number
         line_number = xml.tell()
+        print(line_number)
         element_block_list.append(element_block)
         element_block = []
         if "</" in line:
             line = xml.readline().rstrip()
     xml.close()
+    
     

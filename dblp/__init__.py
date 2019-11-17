@@ -5,6 +5,7 @@ import os
 
 APP = Flask(__name__)
 XML_FILE = "test.xml"
+_es = es_API.connect_elasticsearch()
 
 @APP.route('/')
 @APP.route("/index")
@@ -13,13 +14,11 @@ def dblp():
 
 @APP.route('/upload', methods=["GET", "POST"])
 def upload():
-    global XML_FILE
-
+    global XML_FILE, _es
     if request.method == "GET":
         return render_template("upload.html")
 
     elif request.method == "POST":
-        _es = es_API.connect_elasticsearch()
         index_name = "dblp"
         if not _es.indices.exists(index_name):
             _es = es_API.create_index(_es, index_name)
@@ -39,10 +38,10 @@ def upload():
                         "proceedings",
                         "www"]
         #Response(xml_manager.getUploadPercentage(XML_FILE), mimetype='text/event-stream')
-        xml_manager.readXML(XML_FILE, element_list, _es)
+        #xml_manager.readXML(XML_FILE, element_list, _es)
         thread = Thread(target=xml_manager.readXML, kwargs={'xml_file': XML_FILE, 'element_list': element_list, '_es': _es})
         thread.start()
-        return redirect("index")
+        return render_template("upload.html")
 
 
 @APP.route('/progress')

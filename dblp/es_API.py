@@ -7,9 +7,9 @@ def connect_elasticsearch():
     _es = None
     _es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
     if _es.ping():
-        print('Connected to ElasticSearch!')
+        print(' * Connected to ElasticSearch!')
     else:
-        print('Could not connect to Elasticsearch!')
+        print(' * Could not connect to Elasticsearch!')
     return _es
 
 def create_index(_es, index_name='new_index', settings='{"dynamic": true}'):
