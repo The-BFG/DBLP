@@ -1,5 +1,6 @@
 from . import xml_manager, es_API
 from flask import Flask, render_template, request, Response, stream_with_context, redirect, url_for, send_from_directory
+from threading import Thread
 import os
 
 APP = Flask(__name__)
@@ -23,7 +24,7 @@ def upload():
         if not _es.indices.exists(index_name):
             _es = es_API.create_index(_es, index_name)
         print(_es)
-        
+
         element_list = ["article",
                         "author",
                         "book",
@@ -37,8 +38,10 @@ def upload():
                         "phdthesis",
                         "proceedings",
                         "www"]
-        Response(xml_manager.getUploadPercentage(XML_FILE), mimetype='text/event-stream')
+        #Response(xml_manager.getUploadPercentage(XML_FILE), mimetype='text/event-stream')
         xml_manager.readXML(XML_FILE, element_list, _es)
+        thread = Thread(target=xml_manager.readXML, kwargs={'xml_file': XML_FILE, 'element_list': element_list, '_es': _es})
+        thread.start()
         return redirect("index")
 
 
@@ -52,4 +55,4 @@ def favicon():
     return send_from_directory(os.path.join(APP.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
-    APP.run()
+    APP.run(threaded=True)

@@ -45,9 +45,10 @@ def getUploadPercentage(xml_file):
     global line_number
     percentage = 0
     while percentage <= 100:
+        yield "retry: 10\n"
         yield "data:" + str(percentage) + "\n\n"
         percentage = line_number/total_line*100
-        time.sleep(0.5)
+        #time.sleep(0.5)
     return percentage
 
     

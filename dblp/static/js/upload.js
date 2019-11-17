@@ -2,7 +2,8 @@ $(window).bind("load", function() {
 	$('#btnUpload').click(function(){
 		$('#clickTitle').hide()
 		$('#btnUpload').hide()
-		$('.hide').show()
+		$('#uploading').show()
+		$('#progress-bar').show()
 		$.ajax({
 			type: 'POST',
 			url: '/upload',
