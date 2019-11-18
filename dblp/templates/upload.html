@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
 </head>
 <body>
-    {% if not uploaded %}
-        <h1 id="clickTitle">Click the button to upload the XML file on Elasticsearch</h1>
+    {% if not mapping %}
+        <div class="center">
+            <h1 id="clickTitle">Click the button to upload the XML file on Elasticsearch</h1>
         <h1 id="uploading">Uploading  xml on Elasticsearch..</h1>
-        <form method="post">
-            <button id="btnUpload" type="button" class="btn btn-outline-success btn-lg">Success</button>
+        <form method="POST">
+            <button id="btnUpload" type="button" class="btn btn-danger btn-lg">Upload</button>
         </form>
+        </div>
     {% else %}
-
+        <h1 id="clickTitle">XML file has already been uploaded on Elasticsearch.</h1>
+        <form action="/index" method="POST" >
+            <button id="btnHome" type="button" class="btn btn-danger btn-lg">Home</button>
+        </form>
     {% endif %}
 	<div id="progress-bar" class="progress" style="width: 100%;">
-		<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
-			<span class="progress-bar-label">0%</span>
+		<div class="progress-bar progress-bar-striped bg-danger active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+			<span class="progress-bar-label center">0%</span>
 		</div>
     </div>
 </div>

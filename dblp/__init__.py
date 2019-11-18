@@ -4,8 +4,9 @@ from threading import Thread
 import os
 
 APP = Flask(__name__)
-XML_FILE = "test.xml"
-_es = es_API.connect_elasticsearch()
+XML_FILE = "dblp.xml"
+INDEX_NAME = "dblp"
+_ES = es_API.connect_elasticsearch()
 
 @APP.route('/')
 @APP.route("/index")
@@ -14,15 +15,16 @@ def dblp():
 
 @APP.route('/upload', methods=["GET", "POST"])
 def upload():
-    global XML_FILE, _es
+    global XML_FILE, _ES, INDEX_NAME
+    mapping = es_API.check_mapping_exist(_ES, INDEX_NAME)
+    print(mapping)
     if request.method == "GET":
-        return render_template("upload.html")
+        return render_template("upload.html", mapping=mapping)
 
     elif request.method == "POST":
-        index_name = "dblp"
-        if not _es.indices.exists(index_name):
-            _es = es_API.create_index(_es, index_name)
-        print(_es)
+        if not _ES.indices.exists(INDEX_NAME):
+            _ES = es_API.create_index(_ES, INDEX_NAME)
+        #print(_ES)
 
         element_list = ["article",
                         "author",
@@ -37,10 +39,9 @@ def upload():
                         "phdthesis",
                         "proceedings",
                         "www"]
-        #Response(xml_manager.getUploadPercentage(XML_FILE), mimetype='text/event-stream')
-        #xml_manager.readXML(XML_FILE, element_list, _es)
-        thread = Thread(target=xml_manager.readXML, kwargs={'xml_file': XML_FILE, 'element_list': element_list, '_es': _es})
-        thread.start()
+        xml_manager.readXML(XML_FILE, element_list, _ES, INDEX_NAME)
+        # thread = Thread(target=xml_manager.readXML, kwargs={'xml_file': XML_FILE, 'element_list': element_list, '_ES': _ES})
+        # thread.start()
         return render_template("upload.html")
 
 
