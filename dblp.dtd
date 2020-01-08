@@ -38,7 +38,7 @@
                         key CDATA #REQUIRED
                         mdate CDATA #IMPLIED
                         publtype CDATA #IMPLIED
-                        reviewid CDATA #IMPLIED
+                        reviewid CDATA #IMPLIEDv
                         rating CDATA #IMPLIED
                         cdate CDATA #IMPLIED
 >
@@ -347,3 +347,6 @@
     <!ENTITY thorn   "&#254;" ><!-- small thorn, Icelandic -->
     <!ENTITY yuml    "&#255;" ><!-- small y, dieresis or umlaut mark -->
 
+# dtdtomapping
+Transform .dtd file of an xml in respective and correct mapping for Elasticsearch.
+This project is born to solve a problem with dynamic mapping of Elasticsearch that when using big .xml, sometimes create error while loading.

@@ -4,26 +4,28 @@ from threading import Thread
 import os
 
 APP = Flask(__name__)
-XML_FILE = "dblp.xml"
+XML_FILE = "test.xml"
 INDEX_NAME = "dblp"
 _ES = es_API.connect_elasticsearch()
 
-@APP.route('/')
-@APP.route("/index")
+@APP.route('/', methods=["GET", "POST"])
+@APP.route("/index", methods=["GET", "POST"])
 def dblp():
     return render_template("index.html")
 
 @APP.route('/upload', methods=["GET", "POST"])
 def upload():
     global XML_FILE, _ES, INDEX_NAME
-    mapping = es_API.check_mapping_exist(_ES, INDEX_NAME)
-    print(mapping)
+    uploaded = _ES.indices.exists(INDEX_NAME)
     if request.method == "GET":
-        return render_template("upload.html", mapping=mapping)
+        return render_template("upload.html", uploaded=uploaded)
 
     elif request.method == "POST":
-        if not _ES.indices.exists(INDEX_NAME):
-            _ES = es_API.create_index(_ES, INDEX_NAME)
+        if not uploaded:
+            with open("mapping.json", 'r') as f:
+                mapping = f.read()
+            print(mapping)
+            _ES, created = es_API.create_index(_ES, index_name=INDEX_NAME, mapping=mapping)
         #print(_ES)
 
         element_list = ["article",

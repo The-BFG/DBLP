@@ -12,7 +12,7 @@ University project for Full Text Search using docker and elastic search.
     docker pull docker.elastic.co/elasticsearch/elasticsearch:7.4.2
     ```
     ```bash
-    docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+    sudo docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.4.2
     ```
 
 3. Upgrade `pip`:

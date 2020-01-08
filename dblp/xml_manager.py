@@ -10,42 +10,45 @@ def wc(xml_file):
 def getUploadPercentage(xml_file):
     total_line = wc(xml_file)
     global line_number
+    if line_number ==total_line:
+        line_number = 0
     percentage = 0
     while percentage <= 100:
         yield "retry: 100\n"
         yield "data:" + str(percentage) + "\n\n"
         percentage = line_number/total_line*100.00
         print(str(line_number)+" / "+str(total_line)+" = "+str(percentage))
-        time.sleep(0.5)
+        time.sleep(1)
     return percentage
 
 
 def xmldictSpecialElementStringToObject(xml_dict, element_type):
-    # print("\n\n"+str(xml_dict))
+    #print("\n\n"+str(xml_dict))
     for key in xml_dict[element_type].keys():
-        if key in ("author", "editor"):
+        if "@" not in key and key != "i":
             if isinstance(xml_dict[element_type][key], str):
                 xml_dict[element_type][key] = [xml_dict[element_type][key]]
-                # print(xml_dict[element_type][key])
+                #print(xml_dict[element_type][key])
 
             if not isinstance(xml_dict[element_type][key], collections.OrderedDict):
                 for element in xml_dict[element_type][key]:
                     if not isinstance(element, collections.OrderedDict):
                         index = xml_dict[element_type][key].index(element)
                         xml_dict[element_type][key][index] = collections.OrderedDict({"#text":element})
-                        # print(xml_dict[element_type][key][index])
+                        #print(xml_dict[element_type][key][index])
+                        #print(xml_dict)
     return xml_dict
 
 
 def uploadElement(_es, xml_element, element_type, index_name='new_index'):
     uploaded = False
-    # print("\nXML input:")
-    # print(xml_element)
+    #print("\nXML input:")
+    #print(xml_element)
     xml_dict = xmltodict.parse(xml_element.replace("&", "&amp;"))
     xml_dict = xmldictSpecialElementStringToObject(xml_dict, element_type)
     json_element = json.dumps(xml_dict, indent=4)
-    # print("JSON output:")
-    # print(json_element)
+    print("JSON output:")
+    print(json_element)
     # Store the document in Elasticsearch 
     try:
         uploaded = _es.index(index=index_name, body=json_element, id=xml_dict[element_type]["@key"])
@@ -91,7 +94,18 @@ def readXML(xml_file, element_list, _es, index_name):
             element_block.append(line)
             # print(element_type, line)
 
-        created = uploadElement(_es, "\n".join(element_block), element_type, index_name)
+        element_block = "\n".join(element_block)
+        element_block = element_block.replace("<sup>", "&lt;sup&gt;")
+        element_block = element_block.replace("</sup>", "&lt;/sup&gt;")
+        element_block = element_block.replace("<sub>", "&lt;sub&gt;")
+        element_block = element_block.replace("</sub>", "&lt;/sub&gt;")
+        element_block = element_block.replace("<i>", "&lt;i&gt;")
+        element_block = element_block.replace("</i>", "&lt;/i&gt;")
+        element_block = element_block.replace("<tt>", "&lt;tt&gt;")
+        element_block = element_block.replace("</tt>", "&lt;/tt&gt;")
+        element_block = element_block.replace("<ref>", "&lt;ref&gt;")
+        element_block = element_block.replace("</ref>", "&lt;/ref&gt;")
+        created = uploadElement(_es, element_block, element_type, index_name)
 
         # print(line_number)
         element_block_list.append(element_block)
@@ -99,6 +113,5 @@ def readXML(xml_file, element_list, _es, index_name):
         if "</" in line:
             line = xml.readline()
             line_number = line_number+1
-
     xml.close()
     

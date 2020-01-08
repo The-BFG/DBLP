@@ -11,21 +11,22 @@ def connect_elasticsearch():
         print(' * Could not connect to Elasticsearch!')
     return _es
 
-def create_index(_es, index_name='new_index'):
+def create_index(_es, index_name='new_index', mapping='None'):
     created = False
     try:
         if not _es.indices.exists(index_name):
             # Ignore 400 means to ignore "Index Already Exist" error.
-            _es.indices.create(index=index_name, ignore=400)
-            print('Creating Index...')
-        created = True
+            print('Creating Index...', index_name)
+            print(_es.indices.create(index=index_name, body=mapping))
+            print("Index created.")
+            created = True
+        else:
+            print("Index already exists.")
     except Exception as ex:
-        print(str(ex))
-    finally:
-        print("Index created.")
+        print(str(ex))        
     return _es, created
 
-def check_mapping_exist(_es, index_name='new_index'):
+def get_mapping(_es, index_name='new_index'):
     mapping = False
     try:
         mapping = IndicesClient.get_mapping(index_name)
