@@ -11,7 +11,18 @@ _ES = es_API.connect_elasticsearch()
 @APP.route('/', methods=["GET", "POST"])
 @APP.route("/index", methods=["GET", "POST"])
 def dblp():
-    return render_template("index.html")
+    global _ES, INDEX_NAME
+    if request.method == "GET":
+        return render_template("index.html")
+   
+    if request.method == "POST":
+        search_string = request.form["query"]
+        rank = request.form["rank"]
+        query = es_API.create_query(search_string, rank)
+        data = _ES.search(index=INDEX_NAME, body=query)
+        print(data)
+        return render_template("index.html", data=data)
+
 
 @APP.route('/upload', methods=["GET", "POST"])
 def upload():
@@ -52,9 +63,11 @@ def progress():
     global XML_FILE
     return Response(stream_with_context(xml_manager.getUploadPercentage(XML_FILE)), mimetype='text/event-stream')
 
+
 @APP.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(APP.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
 
 if __name__ == '__main__':
     APP.run(threaded=True)

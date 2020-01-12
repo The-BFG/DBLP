@@ -6,3 +6,15 @@ div{
     border-color: rgb(189, 33, 48);
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgb(189, 33, 48);
   }
+
+.center{
+    text-align: center;
+}
+
+.pad-10{
+    padding: 10px;
+}
+
+#submit_query{
+    margin-top: 25px;
+}

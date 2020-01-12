@@ -8,6 +8,7 @@
     <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
 </head>
 <body>
+    <div class="pad-10">
     {% if not uploaded %}
         <div class="center">
             <h1 id="clickTitle">Click the button to upload the XML file on Elasticsearch</h1>
@@ -19,7 +20,7 @@
     {% else %}
         <div class="center">
             <h1 id="clickTitle">XML file has already been uploaded on Elasticsearch.</h1>
-            <form action="/index" method="POST">
+            <form action="/index" method="GET">
                 <button id="btnHome" type="submit" class="btn btn-danger btn-lg">Home</button>
             </form>
         </div>
@@ -29,7 +30,6 @@
 			<span class="progress-bar-label center">0%</span>
 		</div>
     </div>
-</div>
 </div>
 </body>
 </html>
