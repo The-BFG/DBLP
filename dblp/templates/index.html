@@ -11,7 +11,11 @@
                 <div class="form-row">
                     <div class="form-group col-md-6">
                         <label for="queryInput">Full Text Search:</label> 
-                        <input type="text" class="form-control border-danger" name="query" id="queryInput" placeholder="book green"><br>
+                        {% if search_string %}
+                            <input type="text" class="form-control border-danger" name="query" id="queryInput" value="{{ search_string }}"><br>
+                        {% else %}
+                            <input type="text" class="form-control border-danger" name="query" id="queryInput" placeholder="book green"><br>
+                        {% endif %}
                     </div>
                     <div class="form-group col-md-4">
                         <label for="rankSelect">Rank type:</label>
@@ -21,19 +25,37 @@
                         </select><br>
                     </div>
                     <div class="form-group col-md-1">
-                    <button id="submit_query" type="submit" class="btn btn-danger btn-lg">Sarch</button>
+                        <input type="hidden" name="page" value="0">
+                        <button id="submit_query" type="submit" class="btn btn-danger btn-lg">Sarch</button>
                     </div>
                 </div>
             </form>
             <div class="pad-10">
             {% if data %}
-                <div>
-                    {% for element in data %}   
-                        <div>{{element}}: {{data[element]}}</div>
+                <div class="container">
+                    {% for element in data["hits"]["hits"] %}   
+                        {% for key in element["_source"].keys() %}
+                        <div class="row red-1 rounded-top">
+                                <div class="col-md-10">Titolo: {{element["_source"][key]["title"][0]["#text"]}}</div>
+                                <div class="col-md-1">{{key}}</div>
+                                <div class="col-md-1 text-right">{{element["_source"][key]["year"][0]["#text"]}}</div>
+                        </div>
+                        <div class="row red-2 rounded-bottom">
+                                <div class="col-md-4">Key: {{element["_source"][key]["@key"]}}</div>
+                                <div class="col-md-6 ">Authors:
+                                    {% for author in element["_source"][key]["author"] %}
+                                        {{author["#text"]}},
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                </div>
+                            {{element}}
+                        </div>
+                        {% endfor %}
                     {% endfor %}
                 </div>
             {% else %}
-                <div>No data on DBLP</div>
+                <div>Nothing found on DBLP!</div>
             {% endif %}
             </div>
         </div>

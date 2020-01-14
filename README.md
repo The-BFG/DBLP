@@ -12,7 +12,11 @@ University project for Full Text Search using docker and elastic search.
     docker pull docker.elastic.co/elasticsearch/elasticsearch:7.4.2
     ```
     ```bash
-    sudo docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+    mkdir /tmp/elasticData
+    ```
+    ```bash
+    sudo docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -v /tmp/elasticData:/usr/share/elasticsearch/data docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+
     ```
 
 3. Upgrade `pip`:
@@ -64,5 +68,4 @@ University project for Full Text Search using docker and elastic search.
         flask run --no-reload    
         ```
         due to a bug in the Flask-SocketIO package which replaces the flask run command.
-
-$ cat dblp.xml | grep key | cut -f-1 -d' ' | sort | uniq | grep -v ">"
+        

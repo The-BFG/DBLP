@@ -47,8 +47,7 @@ def uploadElement(_es, xml_element, element_type, index_name='new_index'):
     xml_dict = xmltodict.parse(xml_element.replace("&", "&amp;"))
     xml_dict = xmldictSpecialElementStringToObject(xml_dict, element_type)
     json_element = json.dumps(xml_dict, indent=4)
-    print("JSON output:")
-    print(json_element)
+    #print("JSON output:\n",json_element)
     # Store the document in Elasticsearch 
     try:
         uploaded = _es.index(index=index_name, body=json_element, id=xml_dict[element_type]["@key"])

@@ -14,14 +14,18 @@ def dblp():
     global _ES, INDEX_NAME
     if request.method == "GET":
         return render_template("index.html")
-   
+
     if request.method == "POST":
         search_string = request.form["query"]
         rank = request.form["rank"]
-        query = es_API.create_query(search_string, rank)
+        if request.form["page"]:
+            page = request.form["page"]
+        else:
+            page = 0
+        query = es_API.create_query(search_string, rank, page=page)
         data = _ES.search(index=INDEX_NAME, body=query)
         print(data)
-        return render_template("index.html", data=data)
+        return render_template("index.html", data=data, search_string=search_string)
 
 
 @APP.route('/upload', methods=["GET", "POST"])
@@ -53,8 +57,6 @@ def upload():
                         "proceedings",
                         "www"]
         xml_manager.readXML(XML_FILE, element_list, _ES, INDEX_NAME)
-        # thread = Thread(target=xml_manager.readXML, kwargs={'xml_file': XML_FILE, 'element_list': element_list, '_ES': _ES})
-        # thread.start()
         return render_template("upload.html")
 
 

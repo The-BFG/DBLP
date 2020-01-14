@@ -37,7 +37,7 @@ def get_mapping(_es, index_name='new_index'):
         print(e)
     return mapping
 
-def create_query(search_string, rank):
+def create_query(search_string, rank, page=0):
     # List of token names.   This is always required
     tokens = (
         'COLON',
@@ -49,7 +49,7 @@ def create_query(search_string, rank):
     # Regular expression rules for simple tokens
     t_COLON = r':'
     t_KEYWORD = r'[^:\ \"\n]+'
-    t_FIELD = r'^((publication|article|incollection|inproc|phThesis|masterThesis)(\.(author|title|year))?|^(crossref)|^(inproceedings|book|journal)(\.(title|publisher))?)'
+    t_FIELD = r'^((article|incollection|inproceedings|phdthesis|mastersthesis|book)(\.(author|title|year|publisher|journal))?|^(crossref))'
     t_PHRASE = r'^[^\"\n]+$'
     
     # Error handling rule
@@ -76,8 +76,12 @@ def create_query(search_string, rank):
         if len(p)>2:
             if p[1] == "crossref":
                 fields = [
-                    "publication.crossref.#text",
-                    "article.crossref.#text" #aggiungere tutti elementi con crossref
+                    "article.crossref.#text",
+                    "incollection.crossref.#text",
+                    "inproceedings.crossref.#text",
+                    "phdthesis.crossref.#text",
+                    "mastersthesis.crossref.#text",
+                    "book.crossref.#text"
                 ]
                 p[0] = {"multi_match": {"query" : p[1], "fields" : fields}}
             else :
@@ -85,8 +89,36 @@ def create_query(search_string, rank):
                 p[0] = {"match": {key : {"query" : p[3], "boost" : 2}}}
         else:
             fields = [
-                "publication.title.#text",
-                "article.title.#text" #aggiungere tutti i campi dei field
+                "article.title.#text",
+                "incollection.title.#text",
+                "inproceedings.title.#text",
+                "phdthesis.title.#text",
+                "mastersthesis.title.#text",
+                "book.title.#text",
+                "article.author.#text",
+                "incollection.author.#text",
+                "inproceedings.author.#text",
+                "phdthesis.author.#text",
+                "mastersthesis.author.#text",
+                "book.author.#text",
+                "article.year.#text",
+                "incollection.year.#text",
+                "inproceedings.year.#text",
+                "phdthesis.year.#text",
+                "mastersthesis.year.#text",
+                "book.year.#text",
+                "article.publisher.#text",
+                "incollection.publisher.#text",
+                "inproceedings.publisher.#text",
+                "phdthesis.publisher.#text",
+                "mastersthesis.publisher.#text",
+                "book.publisher.#text",
+                "article.journal.#text",
+                "incollection.journal.#text",
+                "inproceedings.journal.#text",
+                "phdthesis.journal.#text",
+                "mastersthesis.journal.#text",
+                "book.journal.#text",
             ]
             p[0] = {"multi_match": {"query" : p[1], "fields" : fields}}
 
@@ -109,7 +141,8 @@ def create_query(search_string, rank):
                     "queries": parsed
                 }
             },
-            "size":100
+            "from": page*100,
+            "size":50
         }
     print(query)
     # query = {

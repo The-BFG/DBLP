@@ -394,7 +394,8 @@
                                 "fields": {
                                     "keyword": {
                                         "type": "keyword",
-                                        "ignore_above": 256
+                                        "ignore_above": 256,
+                                        "boost": 2
                                     }
                                 }
                             }
@@ -1398,7 +1399,8 @@
                                 "fields": {
                                     "keyword": {
                                         "type": "keyword",
-                                        "ignore_above": 256
+                                        "ignore_above": 256,
+                                        "boost": 2
                                     }
                                 }
                             }
@@ -2402,7 +2404,8 @@
                                 "fields": {
                                     "keyword": {
                                         "type": "keyword",
-                                        "ignore_above": 256
+                                        "ignore_above": 256,
+                                        "boost": 2
                                     }
                                 }
                             }
@@ -3406,7 +3409,8 @@
                                 "fields": {
                                     "keyword": {
                                         "type": "keyword",
-                                        "ignore_above": 256
+                                        "ignore_above": 256,
+                                        "boost": 2
                                     }
                                 }
                             }
@@ -4410,7 +4414,8 @@
                                 "fields": {
                                     "keyword": {
                                         "type": "keyword",
-                                        "ignore_above": 256
+                                        "ignore_above": 256,
+                                        "boost": 2
                                     }
                                 }
                             }
@@ -5414,7 +5419,8 @@
                                 "fields": {
                                     "keyword": {
                                         "type": "keyword",
-                                        "ignore_above": 256
+                                        "ignore_above": 256,
+                                        "boost": 2
                                     }
                                 }
                             }
@@ -6418,7 +6424,8 @@
                                 "fields": {
                                     "keyword": {
                                         "type": "keyword",
-                                        "ignore_above": 256
+                                        "ignore_above": 256,
+                                        "boost": 2
                                     }
                                 }
                             }
@@ -7422,7 +7429,8 @@
                                 "fields": {
                                     "keyword": {
                                         "type": "keyword",
-                                        "ignore_above": 256
+                                        "ignore_above": 256,
+                                        "boost": 2
                                     }
                                 }
                             }
@@ -8426,7 +8434,8 @@
                                 "fields": {
                                     "keyword": {
                                         "type": "keyword",
-                                        "ignore_above": 256
+                                        "ignore_above": 256,
+                                        "boost": 2
                                     }
                                 }
                             }

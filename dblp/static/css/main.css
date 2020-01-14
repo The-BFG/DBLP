@@ -3,7 +3,7 @@ div{
 }
 
 .form-control:focus {
-    border-color: rgb(189, 33, 48);
+    border-color: #bd2130;
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgb(189, 33, 48);
   }
 
@@ -17,4 +17,12 @@ div{
 
 #submit_query{
     margin-top: 25px;
+}
+
+.red-1{
+    background-color: #d8999f;
+}
+
+.red-2{
+    background-color: #dab1b5;
 }
