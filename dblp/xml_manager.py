@@ -1,6 +1,6 @@
 import json, xmltodict, collections, elasticsearch as es, time
 from subprocess import check_output
-from . import es_API
+#from . import es_API
 
 line_number = 0.00
 
@@ -109,6 +109,7 @@ def readXML(xml_file, element_list, _es, index_name):
         # print(line_number)
         element_block_list.append(element_block)
         element_block = []
+
         if "</" in line:
             line = xml.readline()
             line_number = line_number+1

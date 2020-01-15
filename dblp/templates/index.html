@@ -14,19 +14,19 @@
                         {% if search_string %}
                             <input type="text" class="form-control border-danger" name="query" id="queryInput" value="{{ search_string }}"><br>
                         {% else %}
-                            <input type="text" class="form-control border-danger" name="query" id="queryInput" placeholder="book green"><br>
+                            <input type="text" class="form-control border-danger" name="query" id="queryInput" placeholder='article.title:"spectre"'><br>
                         {% endif %}
                     </div>
                     <div class="form-group col-md-4">
                         <label for="rankSelect">Rank type:</label>
                         <select class="form-control border-danger" id="rankSelect" name="rank">
-                            <option value="MostSearched">Most searched</option>
-                            <option value="MostImportant">Most important</option>
+                            <option value="MostRelevant">Most relevant</option>
+                            <option value="MostRecent">Most recent</option>
                         </select><br>
                     </div>
                     <div class="form-group col-md-1">
                         <input type="hidden" name="page" value="0">
-                        <button id="submit_query" type="submit" class="btn btn-danger btn-lg">Sarch</button>
+                        <button id="submit_query" type="submit" class="btn btn-danger btn-lg">Search</button>
                     </div>
                 </div>
             </form>
@@ -35,22 +35,80 @@
                 <div class="container">
                     {% for element in data["hits"]["hits"] %}   
                         {% for key in element["_source"].keys() %}
-                        <div class="row red-1 rounded-top">
-                                <div class="col-md-10">Titolo: {{element["_source"][key]["title"][0]["#text"]}}</div>
+                            <div class="row red-1 rounded-top">
+                                <div class="col-md-1">Titolo:</div>
+                                <div class="col-md-9">{{element["_source"][key]["title"][0]["#text"]}}</div>
                                 <div class="col-md-1">{{key}}</div>
                                 <div class="col-md-1 text-right">{{element["_source"][key]["year"][0]["#text"]}}</div>
-                        </div>
-                        <div class="row red-2 rounded-bottom">
-                                <div class="col-md-4">Key: {{element["_source"][key]["@key"]}}</div>
-                                <div class="col-md-6 ">Authors:
+                            </div>
+                            <div class="row red-2">
+                                <div class="col-md-1">Key:</div>
+                                <div class="col-md-11">{{element["_source"][key]["@key"]}}</div>
+                            </div>
+                            {% if element["_source"][key]["author"] %}
+                            <div class="row red-2">
+                                <div class="col-md-1">Authors:</div>
+                                <div class="col-md-11">
                                     {% for author in element["_source"][key]["author"] %}
                                         {{author["#text"]}},
                                     {% endfor %}
                                 </div>
-                                <div class="col-md-6">
+                            </div>
+                            {% endif %}
+                            {% if element["_source"][key]["editor"] %}
+                            <div class="row red-2">
+                                <div class="col-md-1">Editor:</div>
+                                <div class="col-md-11">
+                                    {% for editor in element["_source"][key]["editor"] %}
+                                        {{editor["#text"]}},
+                                    {% endfor %}
                                 </div>
-                            {{element}}
-                        </div>
+                            </div>
+                            {% endif %}
+                            {% if element["_source"][key]["journal"] %}
+                            <div class="row red-2">
+                                <div class="col-md-1">Journal:</div>
+                                <div class="col-md-11">
+                                    {{element["_source"][key]["journal"][0]["#text"]}}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if element["_source"][key]["volume"] %}
+                            <div class="row red-2">
+                                <div class="col-md-1">Volume:</div>
+                                <div class="col-md-11">
+                                    {{element["_source"][key]["volume"][0]["#text"]}}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if element["_source"][key]["booktitle"] %}
+                            <div class="row red-2">
+                                <div class="col-md-1">Booktitle:</div>
+                                <div class="col-md-11">
+                                    {{element["_source"][key]["booktitle"][0]["#text"]}}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if element["_source"][key]["ee"] %}
+                            <div class="row red-2">
+                                <div class="col-md-1">Link:</div>
+                                <div class="col-md-11">
+                                    <a href='{{element["_source"][key]["ee"][0]["#text"]}}' target="_blank">{{element["_source"][key]["ee"][0]["#text"]}}</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="row red-2 rounded-bottom">
+                                    {{element}}
+                                <div class="col-md-5">
+                                    <form action="/index" method="POST">
+                                        <input type="hidden" name="query" value='crossref:"{{element["_source"][key]["@key"]}}"'>
+                                        <input type="hidden" name="rank" value="MostRecent">
+                                        <input type="hidden" name="page" value="0">
+                                        <button id="crossrefbtn" type="submit" class="btn btn-danger btn-sm">Related document</button>
+                                    </form>
+                                    <br>
+                                </div>
+                            </div>
                         {% endfor %}
                     {% endfor %}
                 </div>

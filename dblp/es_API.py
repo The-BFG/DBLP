@@ -83,7 +83,7 @@ def create_query(search_string, rank, page=0):
                     "mastersthesis.crossref.#text",
                     "book.crossref.#text"
                 ]
-                p[0] = {"multi_match": {"query" : p[1], "fields" : fields}}
+                p[0] = {"multi_match": {"query" : p[3], "fields" : fields}}
             else :
                 key = p[1] + ".#text"
                 p[0] = {"match": {key : {"query" : p[3], "boost" : 2}}}
