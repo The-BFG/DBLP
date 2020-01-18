@@ -18,7 +18,6 @@ def create_index(_es, index_name='new_index', mapping='None'):
     created = False
     try:
         if not _es.indices.exists(index_name):
-            # Ignore 400 means to ignore "Index Already Exist" error.
             print('Creating Index...', index_name)
             print(_es.indices.create(index=index_name, body=mapping))
             print("Index created.")
@@ -37,7 +36,7 @@ def get_mapping(_es, index_name='new_index'):
         print(e)
     return mapping
 
-def create_query(search_string, rank, page=0):
+def create_query(search_string, rank, page=1):
     # List of token names.   This is always required
     tokens = (
         'COLON',
@@ -51,7 +50,7 @@ def create_query(search_string, rank, page=0):
     t_KEYWORD = r'[^:\ \"\n]+'
     t_FIELD = r'^((article|incollection|inproceedings|phdthesis|mastersthesis|book)(\.(author|title|year|publisher|journal))?|^(crossref))'
     t_PHRASE = r'^[^\"\n]+$'
-    
+
     # Error handling rule
     def t_error(t):
         print("Illegal character '%s'" % t.value[0])
@@ -64,16 +63,16 @@ def create_query(search_string, rank, page=0):
         '''query : expression
                  | query expression'''
         if len(p)>2:
-            print("testttquery",p[1],p[2])
+            print("testttquery", p[1], p[2])
             p[0] = p[1] + [p[2]]
         else:
-            print("testtt111query",p[1])
+            print("testtt111query", p[1])
             p[0] = [p[1]]
 
     def p_expression(p):
         '''expression : FIELD COLON value
                       | value'''
-        if len(p)>2:
+        if len(p) > 2:
             if p[1] == "crossref":
                 fields = [
                     "article.crossref.#text",
@@ -84,7 +83,7 @@ def create_query(search_string, rank, page=0):
                     "book.crossref.#text"
                 ]
                 p[0] = {"multi_match": {"query" : p[3], "fields" : fields}}
-            else :
+            else:
                 key = p[1] + ".#text"
                 p[0] = {"match": {key : {"query" : p[3], "boost" : 2}}}
         else:
@@ -134,28 +133,33 @@ def create_query(search_string, rank, page=0):
     parser = yacc.yacc(debug=True)
     parsed = parser.parse(search_string, lexer=lexer, debug=True)
     print(parsed)
-
-    query = {
+    if rank == "MostRecent":
+        query = {
+            "sort" : [{
+                "article.year.#text.keyword" : {"order" : "desc"},
+                "incollection.year.#text.keyword" : {"order" : "desc"},
+                "inproceedings.year.#text.keyword" : {"order" : "desc"},
+                "phdthesis.year.#text.keyword" : {"order" : "desc"},
+                "mastersthesis.year.#text.keyword" : {"order" : "desc"}
+                }],
             "query": {
                 "dis_max": {
                     "queries": parsed
                 }
             },
-            "from": page*100,
-            "size":50
+            "from": (page-1)*100,
+            "size":100
         }
+    else:
+        query = {
+            "query": {
+                "dis_max": {
+                    "queries": parsed
+                }
+            },
+            "from": (page-1)*100,
+            "size":100
+        }
+
     print(query)
-    # query = {
-    #         "query": {
-    #             "bool": {
-    #                 "must": [
-    #                     {
-    #                         "match": {
-    #                             "article.title.#text": search_string
-    #                         }
-    #                     }
-    #                 ]
-    #             }
-    #         }
-    #     }
     return query

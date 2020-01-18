@@ -4,7 +4,7 @@ from threading import Thread
 import os
 
 APP = Flask(__name__)
-XML_FILE = "test.xml"
+XML_FILE = "dblp.xml"
 INDEX_NAME = "dblp"
 _ES = es_API.connect_elasticsearch()
 
@@ -13,19 +13,30 @@ _ES = es_API.connect_elasticsearch()
 def dblp():
     global _ES, INDEX_NAME
     if request.method == "GET":
-        return render_template("index.html")
+        return render_template("index.html", page=0)
 
     if request.method == "POST":
         search_string = request.form["query"]
         rank = request.form["rank"]
-        if request.form["page"]:
-            page = request.form["page"]
-        else:
-            page = 0
-        query = es_API.create_query(search_string, rank, page=page)
+        page = int(request.form["page"])
+        print(page)
+        query = es_API.create_query(search_string, rank, page)
         data = _ES.search(index=INDEX_NAME, body=query)
-        print(data)
-        return render_template("index.html", data=data, search_string=search_string)
+        #print(data)
+        return render_template("index.html", data=data, search_string=search_string, rank=rank, page=page)
+
+@APP.route("/index/<query>/<rank>/<int:page>", methods=["GET"])
+def change_page(query, rank, page):
+    global _ES, INDEX_NAME
+    if request.method == "GET":
+        search_string = query
+        rank = rank
+        page = page
+        query = es_API.create_query(search_string, rank, page)
+        data = _ES.search(index=INDEX_NAME, body=query)
+        return render_template("index.html", data=data, search_string=search_string, rank=rank, page=page)
+    else:
+        return render_template("index.html", page=0)
 
 
 @APP.route('/upload', methods=["GET", "POST"])
@@ -39,7 +50,7 @@ def upload():
         if not uploaded:
             with open("mapping.json", 'r') as f:
                 mapping = f.read()
-            print(mapping)
+            #print(mapping)
             _ES, created = es_API.create_index(_ES, index_name=INDEX_NAME, mapping=mapping)
         #print(_ES)
 

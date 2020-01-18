@@ -20,19 +20,31 @@
                     <div class="form-group col-md-4">
                         <label for="rankSelect">Rank type:</label>
                         <select class="form-control border-danger" id="rankSelect" name="rank">
-                            <option value="MostRelevant">Most relevant</option>
-                            <option value="MostRecent">Most recent</option>
+                            {% if rank == "MostRelevant" %}
+                                <option value="MostRelevant" selected>Most relevant</option>
+                                <option value="MostRecent">Most recent</option>
+                            {% elif rank == "MostRecent" %}
+                                <option value="MostRelevant">Most relevant</option>
+                                <option value="MostRecent" selected>Most recent</option>
+                            {% else %}
+                                <option value="MostRelevant" selected>Most relevant</option>
+                                <option value="MostRecent">Most recent</option>
+                            {% endif %}
                         </select><br>
                     </div>
                     <div class="form-group col-md-1">
-                        <input type="hidden" name="page" value="0">
+                        <input type="hidden" name="page" value="1">
                         <button id="submit_query" type="submit" class="btn btn-danger btn-lg">Search</button>
                     </div>
                 </div>
             </form>
             <div class="pad-10">
             {% if data %}
-                <div class="container">
+                <div class="row">
+                    <div class="col-md-2">Query execution time: {{data["took"]}}ms</div>
+                    <div class="col-md-2">Document retrieved: {{data["hits"]["total"]["value"]}}</div>
+                </div>
+                <div class="container-fluid">
                     {% for element in data["hits"]["hits"] %}   
                         {% for key in element["_source"].keys() %}
                             <div class="row red-1 rounded-top">
@@ -90,20 +102,22 @@
                             </div>
                             {% endif %}
                             {% if element["_source"][key]["ee"] %}
-                            <div class="row red-2">
-                                <div class="col-md-1">Link:</div>
-                                <div class="col-md-11">
-                                    <a href='{{element["_source"][key]["ee"][0]["#text"]}}' target="_blank">{{element["_source"][key]["ee"][0]["#text"]}}</a>
-                                </div>
-                            </div>
+                                {% for link in element["_source"][key]["ee"] %}
+                                    <div class="row red-2">
+                                        <div class="col-md-1">Link:</div>
+                                        <div class="col-md-11">
+                                            <a href='{{link["#text"]}}' target="_blank">{{link["#text"]}}</a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
                             {% endif %}
                             <div class="row red-2 rounded-bottom">
-                                    {{element}}
+                                    <!-- {{data}} -->
                                 <div class="col-md-5">
                                     <form action="/index" method="POST">
                                         <input type="hidden" name="query" value='crossref:"{{element["_source"][key]["@key"]}}"'>
-                                        <input type="hidden" name="rank" value="MostRecent">
-                                        <input type="hidden" name="page" value="0">
+                                        <input type="hidden" name="rank" value="MostRelevant">
+                                        <input type="hidden" name="page" value="1">
                                         <button id="crossrefbtn" type="submit" class="btn btn-danger btn-sm">Related document</button>
                                     </form>
                                     <br>
@@ -112,6 +126,19 @@
                         {% endfor %}
                     {% endfor %}
                 </div>
+                <nav aria-label="...">
+                    <ul class="pagination justify-content-center">
+                        {% for n in range(1,[16,(data["hits"]["total"]["value"]//100)+2|round(0,'ceil')|int]|min) %}
+                            {% if page == n %}
+                            <li class="page-item active">
+                            {% else %}
+                            <li class="page-item">
+                            {% endif %}
+                                <a class="page-link" href="/index/{{search_string}}/{{rank}}/{{n}}">{{n}}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
             {% else %}
                 <div>Nothing found on DBLP!</div>
             {% endif %}

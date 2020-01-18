@@ -1,11 +1,12 @@
 import json, xmltodict, collections, elasticsearch as es, time
+from elasticsearch import helpers
 from subprocess import check_output
-#from . import es_API
 
 line_number = 0.00
 
 def wc(xml_file):
     return float(check_output(["wc", "-l", xml_file]).split()[0])
+
 
 def getUploadPercentage(xml_file):
     total_line = wc(xml_file)
@@ -40,30 +41,49 @@ def xmldictSpecialElementStringToObject(xml_dict, element_type):
     return xml_dict
 
 
-def uploadElement(_es, xml_element, element_type, index_name='new_index'):
-    uploaded = False
+def createJsonElement(xml_element, element_type, index_name='new_index'):
+    #uploaded = False
     #print("\nXML input:")
     #print(xml_element)
     xml_dict = xmltodict.parse(xml_element.replace("&", "&amp;"))
     xml_dict = xmldictSpecialElementStringToObject(xml_dict, element_type)
-    json_element = json.dumps(xml_dict, indent=4)
+    xml_dict = collections.OrderedDict({
+        "_index" : index_name,
+        "_doc" : element_type,
+        "_id" : xml_dict[element_type]["@key"],
+        "_source" : xml_dict
+    })
+    #json_element = json.dumps(xml_dict, indent=4)
+    #print(json_element)
     #print("JSON output:\n",json_element)
     # Store the document in Elasticsearch 
-    try:
-        uploaded = _es.index(index=index_name, body=json_element, id=xml_dict[element_type]["@key"])
-    except es.exceptions.RequestError  as _e:
-        uploaded = _e
-    return uploaded
+    # try:
+    #     uploaded = _es.index(index=index_name, body=json_element, id=xml_dict[element_type]["@key"])
+    # except es.exceptions.RequestError  as _e:
+    #     uploaded = _e
+    # return uploaded
+    return xml_dict#json_element
 
     
+def uploadMultiJson(_es, json_list, index_name):
+    try:
+        status, _ = helpers.bulk(_es, json_list, index=index_name)
+        print("Upload result:", status)
+    except Exception as e:
+        print("\nBULK UPLOAD ERROR:", e)
+    return
+
+
 '''Read XMl file element by element for manage big XML file.'''
 def readXML(xml_file, element_list, _es, index_name):
     global line_number
+    counter = -1
     xml = open(xml_file, "r")
-    element_block_list = []
+    json_list = []
     element_block = []
     line = xml.readline().rstrip()
     element_type = ""
+    last_type = ""
 
     while line:
         # Check if there's one of the element to search in line
@@ -75,6 +95,10 @@ def readXML(xml_file, element_list, _es, index_name):
             if "<"+element in line:
                 element_type = element
                 break
+
+        if counter == -1:
+            last_type = element_type
+            counter = 1
         #print("Start block:")
         # Cycle on all line after main element that was found until close tag
         while "</"+element_type+">" not in line:
@@ -104,14 +128,28 @@ def readXML(xml_file, element_list, _es, index_name):
         element_block = element_block.replace("</tt>", "&lt;/tt&gt;")
         element_block = element_block.replace("<ref>", "&lt;ref&gt;")
         element_block = element_block.replace("</ref>", "&lt;/ref&gt;")
-        created = uploadElement(_es, element_block, element_type, index_name)
-
-        # print(line_number)
-        element_block_list.append(element_block)
-        element_block = []
+        xml_dict = createJsonElement(element_block, element_type, index_name=index_name)
 
         if "</" in line:
             line = xml.readline()
             line_number = line_number+1
+
+        if  counter == 5000:
+            #print(json_list)
+            uploadMultiJson(_es, json_list, index_name=index_name)
+            json_list = []
+
+            last_type = element_type
+            json_list.append(xml_dict)
+            counter = -1
+        else:
+            counter = counter+1
+            json_list.append(xml_dict)
+
+        element_block = []
+
+    if json_list:
+        uploadMultiJson(_es, json_list, index_name=index_name)
+
     xml.close()
     
