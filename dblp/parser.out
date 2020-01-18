@@ -1,5 +1,9 @@
 Created by PLY version 3.11 (http://www.dabeaz.com/ply)
 
+Unused terminals:
+
+    QUOTES
+
 Grammar
 
 Rule 0     S' -> query
@@ -7,21 +11,24 @@ Rule 1     query -> expression
 Rule 2     query -> query expression
 Rule 3     expression -> FIELD COLON value
 Rule 4     expression -> value
-Rule 5     value -> KEYWORD
-Rule 6     value -> " PHRASE "
+Rule 5     value -> PHRASE
+Rule 6     value -> KEYWORD
+Rule 7     phrase -> KEYWORD
+Rule 8     phrase -> KEYWORD KEYWORD
 
 Terminals, with rules where they appear
 
-"                    : 6 6
 COLON                : 3
 FIELD                : 3
-KEYWORD              : 5
-PHRASE               : 6
+KEYWORD              : 6 7 8 8
+PHRASE               : 5
+QUOTES               : 
 error                : 
 
 Nonterminals, with rules where they appear
 
 expression           : 1 2
+phrase               : 
 query                : 2 0
 value                : 3 4
 
@@ -34,12 +41,12 @@ state 0
     (2) query -> . query expression
     (3) expression -> . FIELD COLON value
     (4) expression -> . value
-    (5) value -> . KEYWORD
-    (6) value -> . " PHRASE "
+    (5) value -> . PHRASE
+    (6) value -> . KEYWORD
 
     FIELD           shift and go to state 3
-    KEYWORD         shift and go to state 5
-    "               shift and go to state 6
+    PHRASE          shift and go to state 5
+    KEYWORD         shift and go to state 6
 
     query                          shift and go to state 1
     expression                     shift and go to state 2
@@ -51,12 +58,12 @@ state 1
     (2) query -> query . expression
     (3) expression -> . FIELD COLON value
     (4) expression -> . value
-    (5) value -> . KEYWORD
-    (6) value -> . " PHRASE "
+    (5) value -> . PHRASE
+    (6) value -> . KEYWORD
 
     FIELD           shift and go to state 3
-    KEYWORD         shift and go to state 5
-    "               shift and go to state 6
+    PHRASE          shift and go to state 5
+    KEYWORD         shift and go to state 6
 
     expression                     shift and go to state 7
     value                          shift and go to state 4
@@ -66,8 +73,8 @@ state 2
     (1) query -> expression .
 
     FIELD           reduce using rule 1 (query -> expression .)
+    PHRASE          reduce using rule 1 (query -> expression .)
     KEYWORD         reduce using rule 1 (query -> expression .)
-    "               reduce using rule 1 (query -> expression .)
     $end            reduce using rule 1 (query -> expression .)
 
 
@@ -83,26 +90,29 @@ state 4
     (4) expression -> value .
 
     FIELD           reduce using rule 4 (expression -> value .)
+    PHRASE          reduce using rule 4 (expression -> value .)
     KEYWORD         reduce using rule 4 (expression -> value .)
-    "               reduce using rule 4 (expression -> value .)
     $end            reduce using rule 4 (expression -> value .)
 
 
 state 5
 
-    (5) value -> KEYWORD .
+    (5) value -> PHRASE .
 
-    FIELD           reduce using rule 5 (value -> KEYWORD .)
-    KEYWORD         reduce using rule 5 (value -> KEYWORD .)
-    "               reduce using rule 5 (value -> KEYWORD .)
-    $end            reduce using rule 5 (value -> KEYWORD .)
+    FIELD           reduce using rule 5 (value -> PHRASE .)
+    PHRASE          reduce using rule 5 (value -> PHRASE .)
+    KEYWORD         reduce using rule 5 (value -> PHRASE .)
+    $end            reduce using rule 5 (value -> PHRASE .)
 
 
 state 6
 
-    (6) value -> " . PHRASE "
+    (6) value -> KEYWORD .
 
-    PHRASE          shift and go to state 9
+    FIELD           reduce using rule 6 (value -> KEYWORD .)
+    PHRASE          reduce using rule 6 (value -> KEYWORD .)
+    KEYWORD         reduce using rule 6 (value -> KEYWORD .)
+    $end            reduce using rule 6 (value -> KEYWORD .)
 
 
 state 7
@@ -110,45 +120,28 @@ state 7
     (2) query -> query expression .
 
     FIELD           reduce using rule 2 (query -> query expression .)
+    PHRASE          reduce using rule 2 (query -> query expression .)
     KEYWORD         reduce using rule 2 (query -> query expression .)
-    "               reduce using rule 2 (query -> query expression .)
     $end            reduce using rule 2 (query -> query expression .)
 
 
 state 8
 
     (3) expression -> FIELD COLON . value
-    (5) value -> . KEYWORD
-    (6) value -> . " PHRASE "
+    (5) value -> . PHRASE
+    (6) value -> . KEYWORD
 
-    KEYWORD         shift and go to state 5
-    "               shift and go to state 6
+    PHRASE          shift and go to state 5
+    KEYWORD         shift and go to state 6
 
-    value                          shift and go to state 10
+    value                          shift and go to state 9
 
 state 9
-
-    (6) value -> " PHRASE . "
-
-    "               shift and go to state 11
-
-
-state 10
 
     (3) expression -> FIELD COLON value .
 
     FIELD           reduce using rule 3 (expression -> FIELD COLON value .)
+    PHRASE          reduce using rule 3 (expression -> FIELD COLON value .)
     KEYWORD         reduce using rule 3 (expression -> FIELD COLON value .)
-    "               reduce using rule 3 (expression -> FIELD COLON value .)
     $end            reduce using rule 3 (expression -> FIELD COLON value .)
-
-
-state 11
-
-    (6) value -> " PHRASE " .
-
-    FIELD           reduce using rule 6 (value -> " PHRASE " .)
-    KEYWORD         reduce using rule 6 (value -> " PHRASE " .)
-    "               reduce using rule 6 (value -> " PHRASE " .)
-    $end            reduce using rule 6 (value -> " PHRASE " .)
 

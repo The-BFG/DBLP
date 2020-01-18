@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'COLON FIELD KEYWORD PHRASEquery : expression\n                 | query expressionexpression : FIELD COLON value\n                      | valuevalue : KEYWORD\n                 | \'"\' PHRASE \'"\' '
+_lr_signature = 'COLON FIELD KEYWORD PHRASE QUOTESquery : expression\n                 | query expressionexpression : FIELD COLON value\n                      | valuevalue : PHRASE\n                 | KEYWORDphrase : KEYWORD\n                 | KEYWORD KEYWORD'
     
-_lr_action_items = {'FIELD':([0,1,2,4,5,7,10,11,],[3,3,-1,-4,-5,-2,-3,-6,]),'KEYWORD':([0,1,2,4,5,7,8,10,11,],[5,5,-1,-4,-5,-2,5,-3,-6,]),'"':([0,1,2,4,5,7,8,9,10,11,],[6,6,-1,-4,-5,-2,6,11,-3,-6,]),'$end':([1,2,4,5,7,10,11,],[0,-1,-4,-5,-2,-3,-6,]),'COLON':([3,],[8,]),'PHRASE':([6,],[9,]),}
+_lr_action_items = {'FIELD':([0,1,2,4,5,6,7,9,],[3,3,-1,-4,-5,-6,-2,-3,]),'PHRASE':([0,1,2,4,5,6,7,8,9,],[5,5,-1,-4,-5,-6,-2,5,-3,]),'KEYWORD':([0,1,2,4,5,6,7,8,9,],[6,6,-1,-4,-5,-6,-2,6,-3,]),'$end':([1,2,4,5,6,7,9,],[0,-1,-4,-5,-6,-2,-3,]),'COLON':([3,],[8,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'query':([0,],[1,]),'expression':([0,1,],[2,7,]),'value':([0,1,8,],[4,4,10,]),}
+_lr_goto_items = {'query':([0,],[1,]),'expression':([0,1,],[2,7,]),'value':([0,1,8,],[4,4,9,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -27,10 +27,12 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> query","S'",1,None,None,None),
-  ('query -> expression','query',1,'p_query','es_API.py',64),
-  ('query -> query expression','query',2,'p_query','es_API.py',65),
-  ('expression -> FIELD COLON value','expression',3,'p_expression','es_API.py',72),
-  ('expression -> value','expression',1,'p_expression','es_API.py',73),
-  ('value -> KEYWORD','value',1,'p_value','es_API.py',81),
-  ('value -> " PHRASE "','value',3,'p_value','es_API.py',82),
+  ('query -> expression','query',1,'p_query','es_API.py',65),
+  ('query -> query expression','query',2,'p_query','es_API.py',66),
+  ('expression -> FIELD COLON value','expression',3,'p_expression','es_API.py',75),
+  ('expression -> value','expression',1,'p_expression','es_API.py',76),
+  ('value -> PHRASE','value',1,'p_value','es_API.py',127),
+  ('value -> KEYWORD','value',1,'p_value','es_API.py',128),
+  ('phrase -> KEYWORD','phrase',1,'p_phrase','es_API.py',135),
+  ('phrase -> KEYWORD KEYWORD','phrase',2,'p_phrase','es_API.py',136),
 ]

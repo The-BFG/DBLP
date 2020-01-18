@@ -39,17 +39,19 @@ def get_mapping(_es, index_name='new_index'):
 def create_query(search_string, rank, page=1):
     # List of token names.   This is always required
     tokens = (
+        'QUOTES',
         'COLON',
-        'KEYWORD',
-        'FIELD',
         'PHRASE',
+        'FIELD',
+        'KEYWORD'
     )
 
     # Regular expression rules for simple tokens
+    t_QUOTES = r'\"'
     t_COLON = r':'
-    t_KEYWORD = r'[^:\ \"\n]+'
+    t_PHRASE = r'\"[^\"\n]+\"'
     t_FIELD = r'^((article|incollection|inproceedings|phdthesis|mastersthesis|book)(\.(author|title|year|publisher|journal))?|^(crossref))'
-    t_PHRASE = r'^[^\"\n]+$'
+    t_KEYWORD = r'[^:\ \"\n]+'
 
     # Error handling rule
     def t_error(t):
@@ -82,10 +84,10 @@ def create_query(search_string, rank, page=1):
                     "mastersthesis.crossref.#text",
                     "book.crossref.#text"
                 ]
-                p[0] = {"multi_match": {"query" : p[3], "fields" : fields}}
+                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             else:
-                key = p[1] + ".#text"
-                p[0] = {"match": {key : {"query" : p[3], "boost" : 2}}}
+                key = p[1] + ".#text" + p[3][1]
+                p[0] = {"match": {key : {"query" : p[3][0], "boost" : 2}}}
         else:
             fields = [
                 "article.title.#text",
@@ -96,7 +98,7 @@ def create_query(search_string, rank, page=1):
                 "book.title.#text",
                 "article.author.#text",
                 "incollection.author.#text",
-                "inproceedings.author.#text",
+                "inp        roceedings.author.#text",
                 "phdthesis.author.#text",
                 "mastersthesis.author.#text",
                 "book.author.#text",
@@ -119,12 +121,20 @@ def create_query(search_string, rank, page=1):
                 "mastersthesis.journal.#text",
                 "book.journal.#text",
             ]
-            p[0] = {"multi_match": {"query" : p[1], "fields" : fields}}
+            p[0] = {"multi_match": {"query" : p[1][0], "fields" : [x + p[1][1] for x in fields]}}
 
     def p_value(p):
-        '''value : KEYWORD
-                 | '"' PHRASE '"' '''
-        p[0] = p[2] if p[1] == '"' else p[1]
+        '''value : PHRASE
+                 | KEYWORD'''
+        print("WORKS UNTIL HERE!")
+        print("CIAO1111", p[0], p[1])
+        p[0] = (p[1][1:-1] if p[1][0] == '"' else p[1], ".keyword" if p[1][0] == '"' else "")
+        print("CIAOOOOOO", p[0], p[1])
+
+    def p_phrase(p):
+        '''phrase : KEYWORD
+                 | KEYWORD KEYWORD'''
+        p[0] = p[1] + p[2] if p[2] else ""
 
     # Error rule for syntax errors
     def p_error(p):
