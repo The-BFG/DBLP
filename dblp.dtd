@@ -38,7 +38,7 @@
                         key CDATA #REQUIRED
                         mdate CDATA #IMPLIED
                         publtype CDATA #IMPLIED
-                        reviewid CDATA #IMPLIEDv
+                        reviewid CDATA #IMPLIED
                         rating CDATA #IMPLIED
                         cdate CDATA #IMPLIED
 >

@@ -11,10 +11,10 @@ def wc(xml_file):
 def getUploadPercentage(xml_file):
     total_line = wc(xml_file)
     global line_number
-    if line_number ==total_line:
+    if line_number == total_line:
         line_number = 0
     percentage = 0
-    while percentage <= 100:
+    while percentage < 100:
         yield "retry: 100\n"
         yield "data:" + str(percentage) + "\n\n"
         percentage = line_number/total_line*100.00
@@ -42,27 +42,21 @@ def xmldictSpecialElementStringToObject(xml_dict, element_type):
 
 
 def createJsonElement(xml_element, element_type, index_name='new_index'):
-    #uploaded = False
     #print("\nXML input:")
     #print(xml_element)
-    xml_dict = xmltodict.parse(xml_element.replace("&", "&amp;"))
-    xml_dict = xmldictSpecialElementStringToObject(xml_dict, element_type)
-    xml_dict = collections.OrderedDict({
-        "_index" : index_name,
-        "_doc" : element_type,
-        "_id" : xml_dict[element_type]["@key"],
-        "_source" : xml_dict
-    })
-    #json_element = json.dumps(xml_dict, indent=4)
-    #print(json_element)
-    #print("JSON output:\n",json_element)
-    # Store the document in Elasticsearch 
-    # try:
-    #     uploaded = _es.index(index=index_name, body=json_element, id=xml_dict[element_type]["@key"])
-    # except es.exceptions.RequestError  as _e:
-    #     uploaded = _e
-    # return uploaded
-    return xml_dict#json_element
+    try:
+        xml_dict = xmltodict.parse(xml_element.replace("&", "&amp;"))
+        xml_dict = xmldictSpecialElementStringToObject(xml_dict, element_type)
+        xml_dict = collections.OrderedDict({
+            "_index" : index_name,
+            "_doc" : element_type,
+            "_id" : xml_dict[element_type]["@key"],
+            "_source" : xml_dict
+        })
+    except Exception as e:
+        print(e)
+        xml_dict = {}
+    return xml_dict
 
     
 def uploadMultiJson(_es, json_list, index_name):
@@ -77,13 +71,12 @@ def uploadMultiJson(_es, json_list, index_name):
 '''Read XMl file element by element for manage big XML file.'''
 def readXML(xml_file, element_list, _es, index_name):
     global line_number
-    counter = -1
+    counter = 0
     xml = open(xml_file, "r")
     json_list = []
     element_block = []
     line = xml.readline().rstrip()
     element_type = ""
-    last_type = ""
 
     while line:
         # Check if there's one of the element to search in line
@@ -96,9 +89,6 @@ def readXML(xml_file, element_list, _es, index_name):
                 element_type = element
                 break
 
-        if counter == -1:
-            last_type = element_type
-            counter = 1
         #print("Start block:")
         # Cycle on all line after main element that was found until close tag
         while "</"+element_type+">" not in line:
@@ -138,14 +128,14 @@ def readXML(xml_file, element_list, _es, index_name):
             #print(json_list)
             uploadMultiJson(_es, json_list, index_name=index_name)
             json_list = []
-
-            last_type = element_type
-            json_list.append(xml_dict)
-            counter = -1
-        else:
+            if xml_dict:
+                json_list.append(xml_dict)
+            counter = 0
             counter = counter+1
-            json_list.append(xml_dict)
-
+        else:
+            if xml_dict:
+                json_list.append(xml_dict)
+            counter = counter+1
         element_block = []
 
     if json_list:

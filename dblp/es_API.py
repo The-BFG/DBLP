@@ -50,7 +50,7 @@ def create_query(search_string, rank, page=1):
     t_QUOTES = r'\"'
     t_COLON = r':'
     t_PHRASE = r'\"[^\"\n]+\"'
-    t_FIELD = r'^((article|incollection|inproceedings|phdthesis|mastersthesis|book)(\.(author|title|year|publisher|journal))?|^(crossref))'
+    t_FIELD = r'^((publication|venue|article|incollection|inproceedings|phdthesis|mastersthesis|book)(\.(author|title|year|publisher|journal))?|^(crossref))'
     t_KEYWORD = r'[^:\ \"\n]+'
 
     # Error handling rule
@@ -59,16 +59,13 @@ def create_query(search_string, rank, page=1):
         t.lexer.skip(1)
 
     lexer = lex.lex()
-    print(lexer)
 
     def p_query(p):
         '''query : expression
                  | query expression'''
-        if len(p)>2:
-            print("testttquery", p[1], p[2])
+        if len(p) > 2:
             p[0] = p[1] + [p[2]]
         else:
-            print("testtt111query", p[1])
             p[0] = [p[1]]
 
     def p_expression(p):
@@ -85,9 +82,91 @@ def create_query(search_string, rank, page=1):
                     "book.crossref.#text"
                 ]
                 p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
+            elif p[1] == "publication":
+                fields = [
+                    "article.title.#text",
+                    "incollection.title.#text",
+                    "inproceedings.title.#text",
+                    "phdthesis.title.#text",
+                    "mastersthesis.title.#text",
+                    "article.author.#text",
+                    "incollection.author.#text",
+                    "inproceedings.author.#text",
+                    "phdthesis.author.#text",
+                    "mastersthesis.author.#text",
+                    "article.year.#text",
+                    "incollection.year.#text",
+                    "inproceedings.year.#text",
+                    "phdthesis.year.#text",
+                    "mastersthesis.year.#text"
+                ]
+                #print("test PUBLICATION", p[3][0], p[3][1])
+                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
+            elif p[1] == "publication.title":
+                fields = [
+                    "article.title.#text",
+                    "incollection.title.#text",
+                    "inproceedings.title.#text",
+                    "phdthesis.title.#text",
+                    "mastersthesis.title.#text"
+                ]
+                #print("test PUBLICATION", p[3][0], p[3][1])
+                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
+            elif p[1] == "publication.author":
+                fields = [
+                    "article.author.#text",
+                    "incollection.author.#text",
+                    "inproceedings.author.#text",
+                    "phdthesis.author.#text",
+                    "mastersthesis.author.#text"
+                ]
+                #print("test PUBLICATION", p[3][0], p[3][1])
+                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
+            elif p[1] == "publication.year":
+                fields = [
+                    "article.year.#text",
+                    "incollection.year.#text",
+                    "inproceedings.year.#text",
+                    "phdthesis.year.#text",
+                    "mastersthesis.year.#text"
+                ]
+                #print("test PUBLICATION", p[3][0], p[3][1])
+                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
+            elif p[1] == "venue":
+                fields = [
+                    "inproceedings.title.#text",
+                    "book.title.#text",
+                    "inproceedings.publisher.#text",
+                    "book.publisher.#text",
+                    "article.journal.#text",
+                    "incollection.journal.#text",
+                    "inproceedings.journal.#text",
+                    "phdthesis.journal.#text",
+                    "mastersthesis.journal.#text"
+                ]
+                #print("test VENUE", p[3][0], p[3][1])
+                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
+            elif p[1] == "venue.title":
+                fields = [
+                    "inproceedings.title.#text",
+                    "book.title.#text"
+                ]
+                #print("test VENUE", p[3][0], p[3][1])
+                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
+            elif p[1] == "venue.publisher":
+                fields = [
+                    "inproceedings.publisher.#text",
+                    "book.publisher.#text"
+                ]
+                #print("test VENUE", p[3][0], p[3][1])
+                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             else:
                 key = p[1] + ".#text" + p[3][1]
-                p[0] = {"match": {key : {"query" : p[3][0], "boost" : 2}}}
+                if p[3][1]:
+                    p[0] = {"query_string": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
+                    #p[0] = {"match_phrase": {key : {"query" : p[3][0], "boost" : 2}}}
+                else:
+                    p[0] = {"match": {key : {"query" : p[3][0], "boost" : 2}}}
         else:
             fields = [
                 "article.title.#text",
@@ -98,7 +177,7 @@ def create_query(search_string, rank, page=1):
                 "book.title.#text",
                 "article.author.#text",
                 "incollection.author.#text",
-                "inp        roceedings.author.#text",
+                "inproceedings.author.#text",
                 "phdthesis.author.#text",
                 "mastersthesis.author.#text",
                 "book.author.#text",
@@ -121,19 +200,16 @@ def create_query(search_string, rank, page=1):
                 "mastersthesis.journal.#text",
                 "book.journal.#text",
             ]
-            p[0] = {"multi_match": {"query" : p[1][0], "fields" : [x + p[1][1] for x in fields]}}
+            p[0] = {"query_string": {"query" : p[1][0], "fields" : [x + p[1][1] for x in fields]}}
 
     def p_value(p):
         '''value : PHRASE
                  | KEYWORD'''
-        print("WORKS UNTIL HERE!")
-        print("CIAO1111", p[0], p[1])
-        p[0] = (p[1][1:-1] if p[1][0] == '"' else p[1], ".keyword" if p[1][0] == '"' else "")
-        print("CIAOOOOOO", p[0], p[1])
+        p[0] = p[1][1:-1] if p[1][0] == '"' else p[1], ".keyword" if p[1][0] == '"' else ""
 
     def p_phrase(p):
         '''phrase : KEYWORD
-                 | KEYWORD KEYWORD'''
+                  | KEYWORD KEYWORD'''
         p[0] = p[1] + p[2] if p[2] else ""
 
     # Error rule for syntax errors
@@ -142,7 +218,7 @@ def create_query(search_string, rank, page=1):
 
     parser = yacc.yacc(debug=True)
     parsed = parser.parse(search_string, lexer=lexer, debug=True)
-    print(parsed)
+    #print(parsed)
     if rank == "MostRecent":
         query = {
             "sort" : [{

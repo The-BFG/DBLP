@@ -68,4 +68,9 @@ University project for Full Text Search using docker and elastic search.
         flask run --no-reload    
         ```
         due to a bug in the Flask-SocketIO package which replaces the flask run command.
+
+    * Open a browser and go to: [localhost:5000](http://localhost:5000)
+        * If you haven't already uploaded the dblp.xml on elasticsearch click on the "Upload DBLP Data" and then "Upload"
+
+
         
