@@ -21,11 +21,11 @@ def dblp():
         rank = request.form["rank"]
         page = int(request.form["page"])
         if search_string:
-            try:
-                query = es_API.create_query(search_string, rank, page)
-                data = _ES.search(index=INDEX_NAME, body=query)
-            except Exception as ex:
-                data = { "error": True }
+            #try:
+            query = es_API.create_query(search_string, rank, page)
+            data = _ES.search(index=INDEX_NAME, body=query)
+            #except Exception as ex:
+            #    data = { "error": True }
         else:
             data = []
         #print(data)

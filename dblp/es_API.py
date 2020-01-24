@@ -44,6 +44,20 @@ def create_exact_match_query(fields, query, boost):
     
 
 def create_query(search_string, rank, page=1):
+
+    alias_by_key = {
+        "publication": ["article", "incollection", "phdthesis", "mastersthesis"],
+        "venue": ["inproceedings", "book"]
+    }
+
+    fields_by_key = {
+        "publication": ["author", "title", "year"],
+        "venue": ["title", "publisher"]
+    }
+
+    all_alias = [elem for (key, value) in alias_by_key.items() for elem in value]
+    all_fields = [elem for (key, value) in fields_by_key.items() for elem in value]
+
     # List of token names.   This is always required
     tokens = (
         'QUOTES',
@@ -57,7 +71,7 @@ def create_query(search_string, rank, page=1):
     t_QUOTES = r'\"'
     t_COLON = r':'
     t_PHRASE = r'\"[^\"\n]+\"'
-    t_FIELD = r'^((publication|venue|article|incollection|inproceedings|phdthesis|mastersthesis|book)(\.(author|title|year|publisher|journal))?|^(crossref))'
+    t_FIELD = r'^((publication|venue|article|incollection|inproceedings|phdthesis|mastersthesis|book)(\.(' + "|".join(all_fields) + '))?|^(crossref))'
     t_KEYWORD = r'[^:\ \"\n]+'
 
     # Error handling rule
@@ -82,117 +96,33 @@ def create_query(search_string, rank, page=1):
         
         if len(p) > 2:
             if p[1] == "crossref":
-                fields = [
-                    "article.crossref.#text",
-                    "incollection.crossref.#text",
-                    "inproceedings.crossref.#text",
-                    "phdthesis.crossref.#text",
-                    "mastersthesis.crossref.#text",
-                    "book.crossref.#text"
-                ]
+                fields = [alias + ".crossref.#text" for alias in all_alias]
             elif p[1] == "publication":
-                fields = [
-                    "article.title.#text",
-                    "incollection.title.#text",
-                    "inproceedings.title.#text",
-                    "phdthesis.title.#text",
-                    "mastersthesis.title.#text",
-                    "article.author.#text",
-                    "incollection.author.#text",
-                    "inproceedings.author.#text",
-                    "phdthesis.author.#text",
-                    "mastersthesis.author.#text",
-                    "article.year.#text",
-                    "incollection.year.#text",
-                    "inproceedings.year.#text",
-                    "phdthesis.year.#text",
-                    "mastersthesis.year.#text"
-                ]
+                fields = ["{}.{}.#text".format(a, f) for a in alias_by_key["publication"] for f in fields_by_key["publication"] ]
             elif p[1] == "publication.title":
-                fields = [
-                    "article.title.#text",
-                    "incollection.title.#text",
-                    "inproceedings.title.#text",
-                    "phdthesis.title.#text",
-                    "mastersthesis.title.#text"
-                ]
+                fields = ["{}.{}.#text".format(a, "title") for a in alias_by_key["publication"]]
             elif p[1] == "publication.author":
-                fields = [
-                    "article.author.#text",
-                    "incollection.author.#text",
-                    "inproceedings.author.#text",
-                    "phdthesis.author.#text",
-                    "mastersthesis.author.#text"
-                ]
+                fields = ["{}.{}.#text".format(a, "author") for a in alias_by_key["publication"]]
             elif p[1] == "publication.year":
-                fields = [
-                    "article.year.#text",
-                    "incollection.year.#text",
-                    "inproceedings.year.#text",
-                    "phdthesis.year.#text",
-                    "mastersthesis.year.#text"
-                ]
+                fields = ["{}.{}.#text".format(a, "year") for a in alias_by_key["publication"]]
             elif p[1] == "venue":
-                fields = [
-                    "inproceedings.title.#text",
-                    "book.title.#text",
-                    "inproceedings.publisher.#text",
-                    "book.publisher.#text",
-                    "article.journal.#text",
-                    "incollection.journal.#text",
-                    "inproceedings.journal.#text",
-                    "phdthesis.journal.#text",
-                    "mastersthesis.journal.#text"
-                ]
+                fields = ["{}.{}.#text".format(a, f) for a in alias_by_key["venue"] for f in fields_by_key["venue"] ]
             elif p[1] == "venue.title":
-                fields = [
-                    "inproceedings.title.#text",
-                    "book.title.#text"
-                ]
+                fields = ["{}.{}.#text".format(a, "title") for a in alias_by_key["venue"]]
             elif p[1] == "venue.publisher":
-                fields = [
-                    "inproceedings.publisher.#text",
-                    "book.publisher.#text"
-                ]
+                fields = ["{}.{}.#text".format(a, "publisher") for a in alias_by_key["venue"]]
             else:
                 fields = [p[1] + ".#text"]
 
             boost = 4 if rank == "MostSpecific" else 1
 
         else:
-            fields = [
-                "article.title.#text",
-                "incollection.title.#text",
-                "inproceedings.title.#text",
-                "phdthesis.title.#text",
-                "mastersthesis.title.#text",
-                "book.title.#text",
-                "article.author.#text",
-                "incollection.author.#text",
-                "inproceedings.author.#text",
-                "phdthesis.author.#text",
-                "mastersthesis.author.#text",
-                "book.author.#text",
-                "article.year.#text",
-                "incollection.year.#text",
-                "inproceedings.year.#text",
-                "phdthesis.year.#text",
-                "mastersthesis.year.#text",
-                "book.year.#text",
-                "article.publisher.#text",
-                "incollection.publisher.#text",
-                "inproceedings.publisher.#text",
-                "phdthesis.publisher.#text",
-                "mastersthesis.publisher.#text",
-                "book.publisher.#text",
-                "article.journal.#text",
-                "incollection.journal.#text",
-                "inproceedings.journal.#text",
-                "phdthesis.journal.#text",
-                "mastersthesis.journal.#text",
-                "book.journal.#text",
-            ]
+            fields = ["{}.{}.#text".format(a, f) for a in alias_by_key["publication"] for f in fields_by_key["publication"]]
+            fields = fields + ["{}.{}.#text".format(a, f) for a in alias_by_key["venue"] for f in fields_by_key["venue"]]
+
             boost = 4 if rank == "LessSpecific" else 1
+
+        print("FIELDS: ", fields)
         
         p[0] = create_exact_match_query(fields=fields, query=p[3] if len(p) > 2 else p[1], boost=boost)
 
@@ -224,5 +154,5 @@ def create_query(search_string, rank, page=1):
         "size":100
     }
 
-    # print(query)
+    print(query)
     return query
