@@ -61,6 +61,7 @@ def create_query(search_string, rank, page=1):
     # List of token names.   This is always required
     tokens = (
         'QUOTES',
+        'SPACE',
         'COLON',
         'PHRASE',
         'FIELD',
@@ -69,10 +70,13 @@ def create_query(search_string, rank, page=1):
 
     # Regular expression rules for simple tokens
     t_QUOTES = r'\"'
+    t_SPACE = r'\ '
     t_COLON = r':'
     t_PHRASE = r'\"[^\"\n]+\"'
-    t_FIELD = r'^((publication|venue|article|incollection|inproceedings|phdthesis|mastersthesis|book)(\.(' + "|".join(all_fields) + '))?|^(crossref))'
+    t_FIELD = r'((publication|venue|article|incollection|inproceedings|phdthesis|mastersthesis|book)(\.(' + "|".join(all_fields) + '))?|(crossref))'
     t_KEYWORD = r'[^:\ \"\n]+'
+
+    print(t_FIELD)    
 
     # Error handling rule
     def t_error(t):
@@ -82,11 +86,12 @@ def create_query(search_string, rank, page=1):
     lexer = lex.lex()
 
     def p_query(p):
-        '''query : expression
-                 | query expression'''
+        '''query : expression SPACE query
+                 | expression'''
         if len(p) > 2:
-            p[0] = p[1] + [p[2]]
-            # print("P0", p[0], "P1", p[1], "P2", p[2])
+            print("P1", p[1], "P2", p[2])
+            p[0] = [p[1]] + p[3]
+            print("P0", p[0], "P1", p[1], "P2", p[2])
         else:
             p[0] = [p[1]]
 
@@ -130,14 +135,17 @@ def create_query(search_string, rank, page=1):
         '''value : PHRASE
                  | KEYWORD'''
         p[0] = p[1]
+        print("VALUE P0 ", p[0], " P1 ", p[1])
 
-    def p_phrase(p):
-        '''phrase : KEYWORD
-                  | KEYWORD KEYWORD'''
-        p[0] = p[1] + p[2] if p[2] else ""
+    #def p_phrase(p):
+    #    '''phrase : KEYWORD SPACE KEYWORD
+    #              | KEYWORD'''
+    #    p[0] = p[1] + p[2] if p[2] else ""
+    #    print("VALUE P0 ", p[0], " P1 ", p[1], " P2 ", p[2] if p[2] else None)
 
     # Error rule for syntax errors
     def p_error(p):
+        print(p)
         print("Syntax error in input!")
 
     parser = yacc.yacc(debug=True)
