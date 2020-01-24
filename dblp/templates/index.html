@@ -4,7 +4,6 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     </head>
     <body>
         <div class="conteiner-fluid">
@@ -16,7 +15,7 @@
                 </form>
             </div>
             {% endif %}
-            <form action="/index" method="POST" class="pad-10">
+            <form action="/index" method="POST" id="form" class="pad-10">
                 <div class="form-row">
                     <div class="form-group col-md-6">
                         <label for="queryInput">Full Text Search:</label> 
@@ -29,38 +28,64 @@
                     <div class="form-group col-md-4">
                         <label for="rankSelect">Rank type:</label>
                         <select class="form-control border-danger" id="rankSelect" name="rank">
-                            {% if rank == "MostRelevant" %}
-                                <option value="MostRelevant" selected>Most relevant</option>
-                                <option value="MostRecent">Most recent</option>
-                            {% elif rank == "MostRecent" %}
+                            {% if rank == "MostSpecific" %}
                                 <option value="MostRelevant">Most relevant</option>
-                                <option value="MostRecent" selected>Most recent</option>
+                                <option value="MostSpecific" selected>Most specific</option>
+                                <option value="LessSpecific">Less specific</option>
+                            {% elif rank == "LessSpecific" %}
+                                <option value="MostRelevant">Most relevant</option>
+                                <option value="MostSpecific">Most specific</option>
+                                <option value="LessSpecific" selected>Less specific</option>
                             {% else %}
                                 <option value="MostRelevant" selected>Most relevant</option>
-                                <option value="MostRecent">Most recent</option>
+                                <option value="MostSpecific">Most specific</option>
+                                <option value="LessSpecific">Less specific</option>
                             {% endif %}
                         </select><br>
                     </div>
                     <div class="form-group col-md-1">
-                        <input type="hidden" name="page" value="1">
-                        <button id="submit_query" type="submit" class="btn btn-danger btn-lg" disabled>Search</button>
+                        <input type="hidden" id="page" name="page" value="1">
+                        <button id="submit_query" type="submit" class="btn btn-danger btn-lg">Search</button>
                     </div>
                 </div>
             </form>
             <div class="pad-10">
-            {% if data %}
+            {% if data and not data.error %}
                 <div class="row">
-                    <div class="col-md-2">Query execution time: {{data["took"]}}ms</div>
-                    <div class="col-md-2">Document retrieved: {{data["hits"]["total"]["value"]}}</div>
+                    <div class="col-md-3">Query execution time: {{data["took"]}}ms</div>
+                    <div class="col-md-3">Document retrieved: {{data["hits"]["total"]["value"]}}</div>
+                    <div class="col-md-6 ">
+                        <nav aria-label="...">
+                            <ul class="pagination pagination-sm justify-content-end">
+                                {% for n in range(1,[16,(data["hits"]["total"]["value"]//100)+2|round(0,'ceil')|int]|min) %}
+                                    {% if page == n %}
+                                    <li class="page-item active">
+                                    {% else %}
+                                    <li class="page-item">
+                                    {% endif %}
+                                        <form action="/index" method="POST" id="form">
+                                            <input type="hidden" name="query" value="{{search_string}}">
+                                            <input type="hidden" name="rank" value="{{rank}}">
+                                            <input type="hidden" name="page" value="{{n}}">
+                                            <button id="submit_query" class="page-link" type="submit">
+                                                {{n}}
+                                            </button>
+                                        </form>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
                 <div class="container-fluid">
                     {% for element in data["hits"]["hits"] %}   
                         {% for key in element["_source"].keys() %}
                             <div class="row red-1 rounded-top">
                                 <div class="col-md-1">Titolo:</div>
-                                <div class="col-md-9">{{element["_source"][key]["title"][0]["#text"]}}</div>
+                                <div class="col-md-7">{{element["_source"][key]["title"][0]["#text"]}}</div>
                                 <div class="col-md-1">{{key}}</div>
                                 <div class="col-md-1 text-right">{{element["_source"][key]["year"][0]["#text"]}}</div>
+                                <div class="col-md-2 text-right">Score: {{ "%4.2f" % element["_score"]}}</div>
                             </div>
                             <div class="row red-2">
                                 <div class="col-md-1">Key:</div>
@@ -144,7 +169,7 @@
                                     <div class="col-md-5">
                                         <form action="/index" method="POST">
                                             <input type="hidden" name="query" value='crossref:"{{element["_source"][key]["crossref"][0]["#text"]}}"'>
-                                            <input type="hidden" name="rank" value="MostRelevant">
+                                            <input type="hidden" name="rank" value="{{rank}}">
                                             <input type="hidden" name="page" value="1">
                                             <button id="crossrefbtn" type="submit" class="btn btn-danger btn-sm">Related document</button>
                                         </form>
@@ -153,7 +178,7 @@
                                 </div>
                             {% endif %}
                         {% endfor %}
-                        <!-- {{element}} -->
+                        {{element}}
                     {% endfor %}
                 </div>
                 <div class="container-fluid">
@@ -165,14 +190,23 @@
                                 {% else %}
                                 <li class="page-item">
                                 {% endif %}
-                                    <a class="page-link" href="/index/{{search_string}}/{{rank}}/{{n}}">{{n}}</a>
+                                    <form action="/index" method="POST" id="form">
+                                        <input type="hidden" name="query" value="{{search_string}}">
+                                        <input type="hidden" name="rank" value="{{rank}}">
+                                        <input type="hidden" name="page" value="{{n}}">
+                                        <button id="submit_query" class="page-link" type="submit">
+                                            {{n}}
+                                        </button>
+                                    </form>
                                 </li>
                             {% endfor %}
                         </ul>
                     </nav>
                 </div>
             {% else %}
-                <div>Nothing found on DBLP!</div>
+                {% if data and data.error %}
+                    <div>Query Error</div>
+                {% endif %}
             {% endif %}
             </div>
         </div>

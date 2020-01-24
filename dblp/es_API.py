@@ -36,6 +36,13 @@ def get_mapping(_es, index_name='new_index'):
         print(e)
     return mapping
 
+def create_exact_match_query(fields, query, boost):
+    if query[0] == '"':
+        return {"query_string": {"query" : query , "fields" : fields, "boost": boost * 2}}
+    else:
+        return {"multi_match": {"query" : query, "fields" : fields, "boost": boost}}
+    
+
 def create_query(search_string, rank, page=1):
     # List of token names.   This is always required
     tokens = (
@@ -65,12 +72,14 @@ def create_query(search_string, rank, page=1):
                  | query expression'''
         if len(p) > 2:
             p[0] = p[1] + [p[2]]
+            # print("P0", p[0], "P1", p[1], "P2", p[2])
         else:
             p[0] = [p[1]]
 
     def p_expression(p):
         '''expression : FIELD COLON value
                       | value'''
+        
         if len(p) > 2:
             if p[1] == "crossref":
                 fields = [
@@ -81,7 +90,6 @@ def create_query(search_string, rank, page=1):
                     "mastersthesis.crossref.#text",
                     "book.crossref.#text"
                 ]
-                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             elif p[1] == "publication":
                 fields = [
                     "article.title.#text",
@@ -100,8 +108,6 @@ def create_query(search_string, rank, page=1):
                     "phdthesis.year.#text",
                     "mastersthesis.year.#text"
                 ]
-                #print("test PUBLICATION", p[3][0], p[3][1])
-                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             elif p[1] == "publication.title":
                 fields = [
                     "article.title.#text",
@@ -110,8 +116,6 @@ def create_query(search_string, rank, page=1):
                     "phdthesis.title.#text",
                     "mastersthesis.title.#text"
                 ]
-                #print("test PUBLICATION", p[3][0], p[3][1])
-                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             elif p[1] == "publication.author":
                 fields = [
                     "article.author.#text",
@@ -120,8 +124,6 @@ def create_query(search_string, rank, page=1):
                     "phdthesis.author.#text",
                     "mastersthesis.author.#text"
                 ]
-                #print("test PUBLICATION", p[3][0], p[3][1])
-                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             elif p[1] == "publication.year":
                 fields = [
                     "article.year.#text",
@@ -130,8 +132,6 @@ def create_query(search_string, rank, page=1):
                     "phdthesis.year.#text",
                     "mastersthesis.year.#text"
                 ]
-                #print("test PUBLICATION", p[3][0], p[3][1])
-                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             elif p[1] == "venue":
                 fields = [
                     "inproceedings.title.#text",
@@ -144,29 +144,21 @@ def create_query(search_string, rank, page=1):
                     "phdthesis.journal.#text",
                     "mastersthesis.journal.#text"
                 ]
-                #print("test VENUE", p[3][0], p[3][1])
-                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             elif p[1] == "venue.title":
                 fields = [
                     "inproceedings.title.#text",
                     "book.title.#text"
                 ]
-                #print("test VENUE", p[3][0], p[3][1])
-                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             elif p[1] == "venue.publisher":
                 fields = [
                     "inproceedings.publisher.#text",
                     "book.publisher.#text"
                 ]
-                #print("test VENUE", p[3][0], p[3][1])
-                p[0] = {"multi_match": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
             else:
-                key = p[1] + ".#text" + p[3][1]
-                if p[3][1]:
-                    p[0] = {"query_string": {"query" : p[3][0], "fields" : [x + p[3][1] for x in fields]}}
-                    #p[0] = {"match_phrase": {key : {"query" : p[3][0], "boost" : 2}}}
-                else:
-                    p[0] = {"match": {key : {"query" : p[3][0], "boost" : 2}}}
+                fields = [p[1] + ".#text"]
+
+            boost = 4 if rank == "MostSpecific" else 1
+
         else:
             fields = [
                 "article.title.#text",
@@ -200,12 +192,14 @@ def create_query(search_string, rank, page=1):
                 "mastersthesis.journal.#text",
                 "book.journal.#text",
             ]
-            p[0] = {"query_string": {"query" : p[1][0], "fields" : [x + p[1][1] for x in fields]}}
+            boost = 4 if rank == "LessSpecific" else 1
+        
+        p[0] = create_exact_match_query(fields=fields, query=p[3] if len(p) > 2 else p[1], boost=boost)
 
     def p_value(p):
         '''value : PHRASE
                  | KEYWORD'''
-        p[0] = p[1][1:-1] if p[1][0] == '"' else p[1], ".keyword" if p[1][0] == '"' else ""
+        p[0] = p[1]
 
     def p_phrase(p):
         '''phrase : KEYWORD
@@ -219,33 +213,16 @@ def create_query(search_string, rank, page=1):
     parser = yacc.yacc(debug=True)
     parsed = parser.parse(search_string, lexer=lexer, debug=True)
     #print(parsed)
-    if rank == "MostRecent":
-        query = {
-            "sort" : [{
-                "article.year.#text.keyword" : {"order" : "desc"},
-                "incollection.year.#text.keyword" : {"order" : "desc"},
-                "inproceedings.year.#text.keyword" : {"order" : "desc"},
-                "phdthesis.year.#text.keyword" : {"order" : "desc"},
-                "mastersthesis.year.#text.keyword" : {"order" : "desc"}
-                }],
-            "query": {
-                "dis_max": {
-                    "queries": parsed
-                }
-            },
-            "from": (page-1)*100,
-            "size":100
-        }
-    else:
-        query = {
-            "query": {
-                "dis_max": {
-                    "queries": parsed
-                }
-            },
-            "from": (page-1)*100,
-            "size":100
-        }
+    
+    query = {
+        "query": {
+            "dis_max": {
+                "queries": parsed
+            }
+        },
+        "from": (page-1)*100,
+        "size":100
+    }
 
-    print(query)
+    # print(query)
     return query

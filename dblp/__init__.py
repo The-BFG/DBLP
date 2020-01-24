@@ -20,26 +20,16 @@ def dblp():
         search_string = request.form["query"]
         rank = request.form["rank"]
         page = int(request.form["page"])
-        query = es_API.create_query(search_string, rank, page)
-        data = _ES.search(index=INDEX_NAME, body=query)
+        if search_string:
+            try:
+                query = es_API.create_query(search_string, rank, page)
+                data = _ES.search(index=INDEX_NAME, body=query)
+            except Exception as ex:
+                data = { "error": True }
+        else:
+            data = []
         #print(data)
         return render_template("index.html", data=data, search_string=search_string, rank=rank, page=page, uploaded=uploaded)
-
-
-@APP.route("/index/<query>/<rank>/<int:page>", methods=["GET"])
-def change_page(query, rank, page):
-    global _ES, INDEX_NAME
-    uploaded = _ES.indices.exists(INDEX_NAME)
-    if request.method == "GET":
-        search_string = query
-        rank = rank
-        page = page
-        query = es_API.create_query(search_string, rank, page)
-        data = _ES.search(index=INDEX_NAME, body=query)
-        return render_template("index.html", data=data, search_string=search_string, rank=rank, page=page, uploaded=uploaded)
-    else:
-        return render_template("index.html", page=0)
-
 
 @APP.route('/upload', methods=["GET", "POST"])
 def upload():

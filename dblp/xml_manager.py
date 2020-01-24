@@ -14,7 +14,7 @@ def getUploadPercentage(xml_file):
     if line_number == total_line:
         line_number = 0
     percentage = 0
-    while percentage < 100:
+    while percentage <= 100:
         yield "retry: 100\n"
         yield "data:" + str(percentage) + "\n\n"
         percentage = line_number/total_line*100.00
