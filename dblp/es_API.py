@@ -38,7 +38,7 @@ def get_mapping(_es, index_name='new_index'):
 
 def create_exact_match_query(fields, query, boost):
     if query[0] == '"':
-        return {"query_string": {"query" : query , "fields" : fields, "boost": boost * 2}}
+        return {"query_string": {"query" : query , "fields" : fields, "boost": boost * 4}}
     else:
         return {"multi_match": {"query" : query, "fields" : fields, "boost": boost}}
     
@@ -154,8 +154,8 @@ def create_query(search_string, rank, page=1):
     
     query = {
         "query": {
-            "dis_max": {
-                "queries": parsed
+            "bool": {
+                "should": parsed
             }
         },
         "from": (page-1)*100,
